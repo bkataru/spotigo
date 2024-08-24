@@ -1,0 +1,111 @@
+{
+    // workbench
+    "workbench.colorTheme": "Moonlight II Italic",
+    "workbench.iconTheme": "vscode-icons",
+    "workbench.editor.enablePreview": true,
+    "workbench.editor.tabSizing": "shrink",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.settings.editor": "json",
+    "workbench.sideBar.location": "left",
+    "workbench.fontAliasing": "default",
+    "workbench.editor.showTabs": "multiple",
+    "workbench.editor.highlightModifiedTabs": true,
+    "workbench.list.smoothScrolling": true,
+    // breadcrumbs
+    "breadcrumbs.enabled": true,
+    "breadcrumbs.filePath": "on",
+    "breadcrumbs.symbolPath": "on",
+    // terminal
+    "terminal.explorerKind": "external",
+    "terminal.integrated.macOptionIsMeta": true,
+    "terminal.integrated.fontFamily": "'Fira Code', monospace",
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.cursorStyle": "line",
+    "terminal.integrated.defaultProfile.linux": "fish",
+    // explorer
+    "explorer.autoReveal": true,
+    "explorer.sortOrder": "type",
+    // editor
+    "editor.wordWrap": "on",
+    "editor.autoIndent": "full",
+    "editor.cursorBlinking": "phase",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.cursorStyle": "line",
+    "editor.renderWhitespace": "boundary",
+    "editor.unicodeHighlight.invisibleCharacters": true,
+    "editor.snippetSuggestions": "top",
+    "editor.acceptSuggestionOnEnter": "smart",
+    "editor.fontSize": 12,
+    "editor.letterSpacing": 0,
+    "editor.lineHeight": 0,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "editor.formatOnSave": true,
+    "editor.showFoldingControls": "always",
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.renderLineHighlight": "all",
+    "editor.cursorSurroundingLines": 90,
+    "editor.lineNumbers": "on",
+    "editor.minimap.enabled": true,
+    "editor.multiCursorModifier": "alt",
+    "editor.suggestSelection": "recentlyUsedByPrefix",
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "editor.linkedEditing": true,
+    "editor.tabCompletion": "on",
+    "editor.tabSize": 4,
+    "editor.indentSize": "tabSize",
+    "editor.detectIndentation": false,
+    "editor.guides.indentation": true,
+    "editor.guides.highlightActiveIndentation": "always",
+    "editor.guides.bracketPairs": "active",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.highlightActiveBracketPair": true,
+    "editor.guides.bracketPairsHorizontal": "active",
+    "editor.fontFamily": "Fira Code",
+    "editor.fontLigatures": true,
+    // files
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    },
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "search.showLineNumbers": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "todo-tree.general.statusBar": "total",
+    "codeium.enableConfig": {
+        "*": true,
+        "markdown": true
+    },
+    // go specific settings
+    "gopls": {
+        "ui.semanticTokens": true
+    },
+    "editor.semanticHighlighting.enabled": true, // for the moonlight theme
+    "peacock.remoteColor": "#1857a4",
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#1f6fd0",
+        "activityBar.background": "#1f6fd0",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#ee90bb",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#1f6fd0",
+        "statusBar.background": "#1857a4",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#1f6fd0",
+        "statusBarItem.remoteBackground": "#1857a4",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#1857a4",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#1857a499",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    }
+}

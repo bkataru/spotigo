@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  vscode:
+    image: spotigo-devenvironment
+    container_name: spotigo-devcontainer
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ../:/workspace
+      - ~/.ssh:/home/vscode/.ssh:ro
+      - ~/.ssh:/root/.ssh:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=
+      - DISPLAY=docker.for.mac.host.internal:0
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    entrypoint: zsh -c "while sleep 1000; do :; done"
