@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"spotigo/internal/config"
-	"spotigo/internal/jsonutil"
+	"github.com/bkataru-workshop/spotigo/internal/config"
+	"github.com/bkataru-workshop/spotigo/internal/jsonutil"
 )
 
 var statsCmd = &cobra.Command{

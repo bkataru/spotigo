@@ -10,11 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"spotigo/internal/config"
-	"spotigo/internal/ollama"
-	"spotigo/internal/rag"
-	"spotigo/internal/spotify"
-	"spotigo/internal/storage"
+	"github.com/bkataru-workshop/spotigo/internal/config"
+	"github.com/bkataru-workshop/spotigo/internal/ollama"
+	"github.com/bkataru-workshop/spotigo/internal/rag"
+	"github.com/bkataru-workshop/spotigo/internal/spotify"
+	"github.com/bkataru-workshop/spotigo/internal/storage"
 )
 
 var (

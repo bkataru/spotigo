@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"spotigo/internal/config"
-	"spotigo/internal/tui"
+	"github.com/bkataru-workshop/spotigo/internal/config"
+	"github.com/bkataru-workshop/spotigo/internal/tui"
 )
 
 var (

@@ -12,7 +12,7 @@ import (
 	"sort"
 	"sync"
 
-	"spotigo/internal/ollama"
+	"github.com/bkataru-workshop/spotigo/internal/ollama"
 
 	"go.uber.org/multierr"
 )

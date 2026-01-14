@@ -9,10 +9,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"spotigo/internal/config"
-	"spotigo/internal/jsonutil"
-	"spotigo/internal/ollama"
-	"spotigo/internal/rag"
+	"github.com/bkataru-workshop/spotigo/internal/config"
+	"github.com/bkataru-workshop/spotigo/internal/jsonutil"
+	"github.com/bkataru-workshop/spotigo/internal/ollama"
+	"github.com/bkataru-workshop/spotigo/internal/rag"
 )
 
 var searchCmd = &cobra.Command{

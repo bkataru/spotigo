@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"spotigo/internal/config"
-	"spotigo/internal/ollama"
+	"github.com/bkataru-workshop/spotigo/internal/config"
+	"github.com/bkataru-workshop/spotigo/internal/ollama"
 )
 
 const (
