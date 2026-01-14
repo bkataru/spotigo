@@ -143,6 +143,23 @@ jobs:
     - name: Run benchmarks
       run: go test -bench=. -benchmem -benchtime=100ms -timeout 2m ./internal/rag/ | tee bench-results.txt
 
+    - name: Create gh-pages branch if not exists
+      if: github.event_name == 'push'
+      run: |
+        # Check if gh-pages branch exists remotely
+        if ! git ls-remote --exit-code --heads origin gh-pages > /dev/null 2>&1; then
+          echo "Creating gh-pages branch..."
+          git checkout --orphan gh-pages
+          git rm -rf . || true
+          echo "# Benchmark Results" > README.md
+          git add README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Initialize gh-pages branch for benchmarks"
+          git push origin gh-pages
+          git checkout main
+        fi
+
     - name: Store benchmark result
       uses: benchmark-action/github-action-benchmark@v1
       if: github.event_name == 'push'
@@ -156,7 +173,7 @@ jobs:
         comment-on-alert: true
         alert-threshold: '200%'
         fail-on-alert: false
-        skip-fetch-gh-pages: true
+        skip-fetch-gh-pages: false
 
   vulnerability-scan:
     name: Vulnerability Scan
