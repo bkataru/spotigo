@@ -19,7 +19,7 @@ updates:
       - "dependencies"
       - "go"
     reviewers:
-      - "bkataru-workshop"
+      - "bkataru"
     groups:
       # Group minor and patch updates together
       go-minor-patch:
@@ -45,7 +45,7 @@ updates:
       - "dependencies"
       - "github-actions"
     reviewers:
-      - "bkataru-workshop"
+      - "bkataru"
     groups:
       # Group all GitHub Actions updates together
       github-actions:
@@ -68,7 +68,7 @@ updates:
       - "dependencies"
       - "docker"
     reviewers:
-      - "bkataru-workshop"
+      - "bkataru"
 
   # Dev container Docker dependencies
   - package-ecosystem: "docker"
