@@ -1,0 +1,36 @@
+# Spotigo Configuration
+# Copy this file to spotigo.yaml and fill in your values
+
+spotify:
+  # Get these from https://developer.spotify.com/dashboard
+  client_id: ""
+  client_secret: ""
+  redirect_uri: "http://localhost:8888/callback"
+  token_file: ".spotify_token"
+
+ollama:
+  # Ollama API endpoint
+  # For local: http://localhost:11434
+  # For Docker: http://ollama:11434
+  host: "http://localhost:11434"
+  timeout: 30
+
+storage:
+  # Where to store all data
+  data_dir: "./data"
+  backup_dir: "./data/backups"
+  embeddings_dir: "./data/embeddings"
+
+backup:
+  # Backup schedule: daily, weekly, or cron expression
+  schedule: "daily"
+  # How many days to keep backups
+  retain_days: 30
+  # Output format: json or csv
+  format: "json"
+
+app:
+  # Enable verbose logging
+  verbose: false
+  # UI theme: dark or light
+  theme: "dark"

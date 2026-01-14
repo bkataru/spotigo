@@ -1,0 +1,7 @@
+# Spotigo Data Directory
+
+This directory contains:
+- `backups/` - Spotify library backups (JSON/CSV)
+- `embeddings/` - Vector embeddings for semantic search
+
+All data is stored locally and never leaves your machine.

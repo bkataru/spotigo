@@ -7,18 +7,49 @@
 *.dll
 *.so
 *.dylib
+spotigo
 
 # Test binary, built with `go test -c`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+coverage.html
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
 # Go workspace file
 go.work
+go.work.sum
 
-# spotify specific environment configuration
+# IDE
+.idea/
+.vscode/launch.json
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spotigo specific
+spotigo.yaml
+.spotify_token
 .env
+.env.local
+
+# Data directories (keep structure, ignore content)
+data/backups/*
+data/embeddings/*
+!data/.gitkeep
+!data/backups/.gitkeep
+!data/embeddings/.gitkeep
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
