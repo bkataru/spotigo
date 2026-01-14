@@ -55,7 +55,7 @@ func BackupExample() {
 	if err != nil {
 		log.Printf("Failed to create Spotify client: %v", err)
 		fmt.Println("Note: Actual backup requires valid Spotify credentials and authentication")
-		return
+		// Continue with the example even if client creation fails
 	}
 
 	// Create storage
@@ -90,9 +90,9 @@ func BackupExample() {
 		},
 		"playlists": []map[string]interface{}{
 			{
-				"id":    "playlist456",
-				"name":  "My Playlist",
-				"owner": "user123",
+				"id":     "playlist456",
+				"name":   "My Playlist",
+				"owner":  "user123",
 				"tracks": []string{"track123", "track789"},
 			},
 		},
@@ -114,6 +114,10 @@ func BackupExample() {
 	fmt.Println("$ spotigo backup list         # List available backups")
 	fmt.Println("$ spotigo backup restore      # Restore from backup")
 	fmt.Println("$ spotigo backup status       # Show backup status")
+
+	// These would be used in actual implementation
+	_ = client
+	_ = store
 }
 
 // ChatExample demonstrates how to use the chat functionality of Spotigo.
@@ -151,13 +155,15 @@ func ChatExample() {
 	fmt.Println("\nUser: What are some good workout songs?")
 
 	// Simulate chat response
+	options := &ollama.Options{
+		Temperature: 0.7,
+		NumPredict:  200,
+	}
+
 	response, err := ollamaClient.Chat(ctx, ollama.ChatRequest{
 		Model:    "granite4:3b",
 		Messages: messages,
-		Options: ollama.Options{
-			Temperature: 0.7,
-			NumPredict:  200,
-		},
+		Options:  options,
 	})
 
 	if err != nil {
@@ -196,6 +202,10 @@ func ChatExample() {
 	fmt.Println("$ spotigo chat           # One-shot chat")
 	fmt.Println("$ spotigo chat --tui     # Interactive TUI mode")
 	fmt.Println("$ spotigo --tui          # Launch TUI with menu")
+
+	// These would be used in actual implementation
+	_ = ollamaClient
+	_ = messages
 }
 
 // RAGExample demonstrates how to use the RAG (Retrieval-Augmented Generation) functionality of Spotigo.
@@ -319,4 +329,8 @@ func RAGExample() {
 	fmt.Println("$ spotigo search \"upbeat songs for working out\"")
 	fmt.Println("$ spotigo search index    # Build search index")
 	fmt.Println("$ spotigo chat           # Chat with your music library")
+
+	// These would be used in actual implementation
+	_ = ollamaClient
+	_ = store
 }
