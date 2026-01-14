@@ -18,11 +18,10 @@ import (
 )
 
 var (
-	backupFull     bool
-	backupType     string
-	backupSchedule string
-	backupIndex    bool
-	backupCmd      = &cobra.Command{
+	backupFull  bool
+	backupType  string
+	backupIndex bool
+	backupCmd   = &cobra.Command{
 		Use:   "backup",
 		Short: "Backup your Spotify library",
 		Long: `Backup your complete Spotify library to local JSON/CSV files.
@@ -39,7 +38,7 @@ Data is stored in the configured data directory (default: ./data/backups).
 
 Use --index to automatically build the search index after backup.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			runBackup(cmd)
+			runBackup()
 		},
 	}
 )
@@ -79,7 +78,7 @@ var backupStatusCmd = &cobra.Command{
 	},
 }
 
-func runBackup(cmd *cobra.Command) {
+func runBackup() {
 	fmt.Println("Starting Spotify library backup...")
 	fmt.Printf("  Type: %s\n", backupType)
 	fmt.Printf("  Full: %v\n", backupFull)

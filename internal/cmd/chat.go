@@ -91,7 +91,11 @@ func runChat() {
 	modelName := chatModel
 	if modelName == "" {
 		if modelCfg != nil {
-			modelName, _ = modelCfg.GetModelForRole("chat")
+			var err error
+			modelName, err = modelCfg.GetModelForRole("chat")
+			if err != nil {
+				fmt.Printf("Warning: failed to get chat model: %v\n", err)
+			}
 		}
 		if modelName == "" {
 			modelName = "granite4:1b"

@@ -190,7 +190,7 @@ func logout() {
 
 	tokenFile := cfg.Spotify.TokenFile
 	if tokenFile == "" {
-		tokenFile = ".spotify_token"
+		tokenFile = ".spotify_token" //nolint:gosec // This is a filename, not a credential
 	}
 
 	if err := os.Remove(tokenFile); err != nil {
@@ -233,14 +233,15 @@ func openBrowser(url string) error {
 		args = append(args, url)
 	}
 
-	return exec.Command(cmd, args...).Start()
+	return exec.Command(cmd, args...).Start() //nolint:gosec // This is intentional browser opening
 }
 
 func handleCallback(client *spotify.Client, expectedState string) error {
 	done := make(chan error, 1)
 
 	server := &http.Server{
-		Addr: ":8888",
+		Addr:              ":8888",
+		ReadHeaderTimeout: 5 * time.Second,
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/callback" {
 				http.NotFound(w, r)
@@ -253,8 +254,7 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 				return
 			}
 
-			ctx := context.Background()
-			if err := client.HandleCallback(ctx, expectedState, r); err != nil {
+			if err := client.HandleCallback(r.Context(), expectedState, r); err != nil {
 				done <- fmt.Errorf("callback failed: %w", err)
 				return
 			}
@@ -268,7 +268,7 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 
 			// Send success response
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, `
+			fmt.Fprintf(w, ` //nolint:errcheck // HTTP response writing errors are handled by the server
 <!DOCTYPE html>
 <html>
 <head><title>Spotigo - Authentication Successful</title></head>
@@ -297,10 +297,14 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 		// Give server time to respond, then shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		server.Shutdown(ctx)
+		if err := server.Shutdown(ctx); err != nil {
+			fmt.Printf("Warning: server shutdown failed: %v\n", err)
+		}
 		return err
 	case <-time.After(5 * time.Minute):
-		server.Close()
+		if err := server.Close(); err != nil {
+			fmt.Printf("Warning: server close failed: %v\n", err)
+		}
 		return fmt.Errorf("authentication timeout: no callback received within 5 minutes")
 	}
 }
