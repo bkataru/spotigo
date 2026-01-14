@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        
+    - name: Build binaries
+      run: |
+        mkdir -p dist
+        GOOS=linux GOARCH=amd64 go build -o dist/spotigo-linux-amd64 ./cmd/spotigo
+        GOOS=windows GOARCH=amd64 go build -o dist/spotigo-windows-amd64.exe ./cmd/spotigo
+        GOOS=darwin GOARCH=amd64 go build -o dist/spotigo-darwin-amd64 ./cmd/spotigo
+        
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/spotigo-linux-amd64
+          dist/spotigo-windows-amd64.exe
+          dist/spotigo-darwin-amd64
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        name: Spotigo ${{ github.ref_name }}
+        body: |
+          ## 🎯 Spotigo ${{ github.ref_name }}
+          
+          AI-powered local music intelligence platform for Spotify library management and analysis.
+          
+          ### ✅ Features
+          - Complete OAuth2 authentication
+          - Full library backup system
+          - AI chat with Ollama integration
+          - Beautiful terminal UI
+          - Model management system
+          - Production-ready CLI framework
+          
+          ### 📦 Downloads
+          - **Linux**: `spotigo-linux-amd64`
+          - **Windows**: `spotigo-windows-amd64.exe`
+          - **macOS**: `spotigo-darwin-amd64`
+          
+          ### 🚀 Quick Start
+          ```bash
+          # 1. Download for your platform
+          # 2. Setup Spotify API credentials
+          # 3. Start Ollama: ollama serve
+          # 4. Authenticate: ./spotigo auth
+          # 5. Backup: ./spotigo backup
+          # 6. Chat: ./spotigo chat
+          ```
+          
+          ### 🔗 Links
+          - [Documentation](https://github.com/yourusername/spotigo)
+          - [Configuration Guide](https://github.com/yourusername/spotigo#configuration)
