@@ -115,6 +115,8 @@ jobs:
     name: Benchmark
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout code
@@ -144,6 +146,7 @@ jobs:
     - name: Store benchmark result
       uses: benchmark-action/github-action-benchmark@v1
       if: github.event_name == 'push'
+      continue-on-error: true
       with:
         name: Go Benchmark
         tool: 'go'
@@ -153,6 +156,7 @@ jobs:
         comment-on-alert: true
         alert-threshold: '200%'
         fail-on-alert: false
+        skip-fetch-gh-pages: true
 
   vulnerability-scan:
     name: Vulnerability Scan
