@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Unused `sanitizeInput` function in chat.go
 
+### Documentation
+- Updated LICENSE copyright year to 2026 and author to bkataru (Baalateja Kataru)
+- Updated Go version requirements from 1.23+ to 1.24+ across all documentation
+- Updated Go version badge in README to reflect 1.24+ requirement
+
 ## [2.0.0] - 2024-01-14
 
 ### Added

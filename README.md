@@ -1,7 +1,7 @@
 # Spotigo Go Library
 
 [![CI](https://github.com/bkataru/spotigo/actions/workflows/ci.yml/badge.svg)](https://github.com/bkataru/spotigo/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bkataru/spotigo)](https://goreportcard.com/report/github.com/bkataru/spotigo)
 [![Go Reference](https://pkg.go.dev/badge/github.com/bkataru/spotigo.svg)](https://pkg.go.dev/github.com/bkataru/spotigo)
@@ -41,7 +41,7 @@ Spotigo provides a comprehensive Go library for interacting with Spotify APIs, m
 
 ### Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 - Ollama (optional, for AI functionality)
 - Spotify Developer Account (for API access)
 
@@ -207,7 +207,7 @@ store := rag.NewStore(ollamaClient, "qwen3-embedding:0.6b", "/path/to/store.json
 
 ### Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 - Ollama (for testing AI functionality)
 
 ### Setup

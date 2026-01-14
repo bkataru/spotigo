@@ -79,7 +79,7 @@ response, _ := ollamaClient.Chat(ctx, ollama.ChatRequest{
 
 For examples to run, you'll need:
 
-1. **Go 1.23+**
+1. **Go 1.24+**
 2. **Ollama** (for AI features)
    ```bash
    ollama serve

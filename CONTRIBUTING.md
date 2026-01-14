@@ -21,7 +21,7 @@ Please be respectful and constructive in all interactions. We're building someth
 
 ### Prerequisites
 
-- **Go 1.23+** - [Download](https://go.dev/dl/)
+- **Go 1.24+** - [Download](https://go.dev/dl/)
 - **Ollama** - [Install](https://ollama.ai/) (for testing AI features)
 - **Git** - For version control
 
