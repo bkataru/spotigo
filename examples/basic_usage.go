@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -13,8 +12,6 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-
 	// Example 1: Initialize Spotify client
 	fmt.Println("=== Spotify Client Example ===")
 	spotifyClient, err := spotify.NewClient(spotify.Config{
@@ -70,6 +67,7 @@ func main() {
 	}
 
 	fmt.Printf("Created %d sample documents\n", len(documents))
+	_ = store // Store is initialized but not used in this example
 
 	// Example 5: Show how to use chat (requires Ollama running)
 	fmt.Println("\n=== Ollama Chat Example (conceptual) ===")
