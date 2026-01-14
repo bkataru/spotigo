@@ -12,6 +12,7 @@ import (
 	"sort"
 	"sync"
 
+	"go.uber.org/multierr"
 	"spotigo/internal/ollama"
 )
 
@@ -57,6 +58,9 @@ func (s *Store) Add(ctx context.Context, doc Document) error {
 		if err != nil {
 			return fmt.Errorf("failed to generate embedding: %w", err)
 		}
+		if len(embedding) == 0 {
+			return fmt.Errorf("generated empty embedding for document %s", doc.ID)
+		}
 		doc.Embedding = embedding
 	}
 
@@ -67,23 +71,119 @@ func (s *Store) Add(ctx context.Context, doc Document) error {
 	return nil
 }
 
-// AddBatch adds multiple documents efficiently
+// AddBatch adds multiple documents efficiently with parallel embedding generation
 func (s *Store) AddBatch(ctx context.Context, docs []Document) error {
-	for i, doc := range docs {
+	return s.AddBatchParallel(ctx, docs, 4) // Default concurrency of 4
+}
+
+// AddBatchParallel adds multiple documents with configurable parallelism
+func (s *Store) AddBatchParallel(ctx context.Context, docs []Document, concurrency int) error {
+	if concurrency < 1 {
+		concurrency = 1
+	}
+
+	// Make a copy of the documents to avoid modifying the caller's slice
+	docsCopy := make([]Document, len(docs))
+	copy(docsCopy, docs)
+
+	// Find documents that need embeddings
+	var needsEmbedding []int
+	for i, doc := range docsCopy {
 		if len(doc.Embedding) == 0 && s.client != nil {
-			embedding, err := s.client.Embed(ctx, s.model, doc.Content)
-			if err != nil {
-				return fmt.Errorf("failed to generate embedding for doc %s: %w", doc.ID, err)
-			}
-			docs[i].Embedding = embedding
+			needsEmbedding = append(needsEmbedding, i)
 		}
 	}
 
+	if len(needsEmbedding) == 0 {
+		// No embeddings needed, just add documents
+		s.mu.Lock()
+		for _, doc := range docsCopy {
+			s.documents[doc.ID] = doc
+		}
+		s.mu.Unlock()
+		return nil
+	}
+
+	// Create worker pool for parallel embedding generation
+	type embeddingResult struct {
+		index     int
+		embedding []float64
+		err       error
+	}
+
+	jobs := make(chan int, len(needsEmbedding))
+	results := make(chan embeddingResult, len(needsEmbedding))
+
+	// Start workers
+	var wg sync.WaitGroup
+	for w := 0; w < concurrency; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for idx := range jobs {
+				select {
+				case <-ctx.Done():
+					results <- embeddingResult{index: idx, err: ctx.Err()}
+					return
+				default:
+					// Make a local copy of the content to avoid race conditions
+					content := docsCopy[idx].Content
+					embedding, err := s.client.Embed(ctx, s.model, content)
+					results <- embeddingResult{index: idx, embedding: embedding, err: err}
+				}
+			}
+		}()
+	}
+
+	// Send jobs with context cancellation check
+	for _, idx := range needsEmbedding {
+		select {
+		case <-ctx.Done():
+			// Context cancelled, stop sending jobs
+			break
+		case jobs <- idx:
+			// Job sent successfully
+		}
+	}
+	close(jobs)
+
+	// Wait for workers to finish
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results - store embeddings in a separate map to avoid races
+	embeddingsMap := make(map[int][]float64)
+	var errors []error
+	for result := range results {
+		if result.err != nil {
+			errors = append(errors, fmt.Errorf("doc %s: %w", docsCopy[result.index].ID, result.err))
+			continue
+		}
+		if len(result.embedding) == 0 {
+			errors = append(errors, fmt.Errorf("doc %s: generated empty embedding", docsCopy[result.index].ID))
+			continue
+		}
+		embeddingsMap[result.index] = result.embedding
+	}
+
+	// Apply embeddings to copies (single-threaded, no race)
+	for idx, embedding := range embeddingsMap {
+		docsCopy[idx].Embedding = embedding
+	}
+
+	// Add all documents to store (even if some embeddings failed)
 	s.mu.Lock()
-	for _, doc := range docs {
+	for _, doc := range docsCopy {
 		s.documents[doc.ID] = doc
 	}
 	s.mu.Unlock()
+
+	// Return combined errors if any
+	if len(errors) > 0 {
+		return fmt.Errorf("embedding errors (%d/%d failed): %w", len(errors), len(needsEmbedding), multierr.Combine(errors...))
+	}
 
 	return nil
 }

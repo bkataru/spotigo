@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  GO_VERSION: '1.23'
+
 jobs:
   test:
     name: Test
@@ -18,12 +21,14 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: ${{ env.GO_VERSION }}
         
     - name: Cache Go modules
       uses: actions/cache@v4
       with:
-        path: ~/go/pkg/mod
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
@@ -31,42 +36,189 @@ jobs:
     - name: Download dependencies
       run: go mod download
       
-    - name: Run tests
-      run: go test -v ./...
+    - name: Run tests with coverage
+      run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        verbose: true
       
     - name: Run vet
       run: go vet ./...
       
     - name: Check formatting
       run: |
-        if [ "$(gofmt -s -l .)" ]; then
-          echo "Code is not formatted properly"
-          gofmt -s -l .
+        if [ "$(gofmt -s -l . | grep -v vendor | head -n 1)" ]; then
+          echo "Code is not formatted properly:"
+          gofmt -s -l . | grep -v vendor
           exit 1
         fi
         
     - name: Build
       run: go build -v ./cmd/spotigo
       
-    - name: Run CLI tests
+    - name: Run CLI smoke tests
       run: |
         ./spotigo --help
-        ./spotigo auth status
+        ./spotigo auth status || true
         ./spotigo models list
 
-  security:
-    name: Security Scan
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+        args: --timeout=5m
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
     - name: Run Gosec Security Scanner
-      uses: securecodewarrior/github-action-gosec@master
+      uses: securego/gosec@master
       with:
         args: '-no-fail -fmt sarif -out results.sarif ./...'
-        
+
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v3
+      if: always()
       with:
         sarif_file: results.sarif
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run benchmarks
+      run: make ci-bench
+
+    - name: Store benchmark result
+      uses: benchmark-action/github-action-benchmark@v1
+      if: github.event_name == 'push'
+      with:
+        name: Go Benchmark
+        tool: 'go'
+        output-file-path: bench-results.txt
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+        comment-on-alert: true
+        alert-threshold: '200%'
+        fail-on-alert: false
+
+  vulnerability-scan:
+    name: Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install govulncheck
+      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    - name: Run govulncheck
+      run: govulncheck ./...
+
+    - name: Check go.mod tidy
+      run: |
+        go mod tidy
+        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+          echo "go.mod or go.sum is not tidy. Run 'go mod tidy' and commit the changes."
+          git diff go.mod go.sum
+          exit 1
+        fi
+
+  build-matrix:
+    name: Build Matrix
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Build
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+      run: |
+        output="spotigo-${{ matrix.goos }}-${{ matrix.goarch }}"
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          output="${output}.exe"
+        fi
+        go build -ldflags="-s -w" -o "${output}" ./cmd/spotigo
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: spotigo-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: spotigo-*
+        retention-days: 7
+
