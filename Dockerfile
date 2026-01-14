@@ -1,5 +1,5 @@
 # Production Dockerfile for Spotigo 2.0
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install git for version info
 RUN apk add --no-cache git
