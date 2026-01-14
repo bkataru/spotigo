@@ -143,8 +143,8 @@ func runChat() {
 		}
 
 		// Validate input
-		if err := validateChatInput(input); err != nil {
-			fmt.Printf("Invalid input: %v\n", err)
+		if valErr := validateChatInput(input); valErr != nil {
+			fmt.Printf("Invalid input: %v\n", valErr)
 			continue
 		}
 
@@ -184,7 +184,7 @@ func runChat() {
 			// Try fallback model
 			fallbackModel := "qwen3:0.6b"
 			if modelCfg != nil {
-				fallbackModel, _ = modelCfg.GetFallbackForRole("chat")
+				fallbackModel, _ = modelCfg.GetFallbackForRole("chat") //nolint:errcheck // Fallback model is optional
 			}
 
 			req.Model = fallbackModel

@@ -18,7 +18,7 @@ var modelsCmd = &cobra.Command{
 
 Models are served via Ollama and run entirely locally.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		cmd.Help() //nolint:errcheck // Help() doesn't return error in cobra v1
 	},
 }
 
@@ -172,13 +172,13 @@ func checkModelStatus() {
 	fmt.Println()
 
 	// Get configured models for comparison
-	modelCfg, _ := config.LoadModelConfig("./config")
+	modelCfg, _ := config.LoadModelConfig("./config") //nolint:errcheck // Optional configuration for display only
 	configuredModels := make(map[string]string)
 	if modelCfg != nil {
-		configuredModels["chat"], _ = modelCfg.GetModelForRole("chat")
-		configuredModels["fast"], _ = modelCfg.GetModelForRole("fast")
-		configuredModels["reasoning"], _ = modelCfg.GetModelForRole("reasoning")
-		configuredModels["embeddings"], _ = modelCfg.GetModelForRole("embeddings")
+		configuredModels["chat"], _ = modelCfg.GetModelForRole("chat")             //nolint:errcheck // Optional for display
+		configuredModels["fast"], _ = modelCfg.GetModelForRole("fast")             //nolint:errcheck // Optional for display
+		configuredModels["reasoning"], _ = modelCfg.GetModelForRole("reasoning")   //nolint:errcheck // Optional for display
+		configuredModels["embeddings"], _ = modelCfg.GetModelForRole("embeddings") //nolint:errcheck // Optional for display
 	}
 
 	for _, model := range models {

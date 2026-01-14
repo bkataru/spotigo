@@ -297,13 +297,13 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 		// Give server time to respond, then shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		if err := server.Shutdown(ctx); err != nil {
-			fmt.Printf("Warning: server shutdown failed: %v\n", err)
+		if shutdownErr := server.Shutdown(ctx); shutdownErr != nil {
+			fmt.Printf("Warning: server shutdown failed: %v\n", shutdownErr)
 		}
 		return err
 	case <-time.After(5 * time.Minute):
-		if err := server.Close(); err != nil {
-			fmt.Printf("Warning: server close failed: %v\n", err)
+		if closeErr := server.Close(); closeErr != nil {
+			fmt.Printf("Warning: server close failed: %v\n", closeErr)
 		}
 		return fmt.Errorf("authentication timeout: no callback received within 5 minutes")
 	}
