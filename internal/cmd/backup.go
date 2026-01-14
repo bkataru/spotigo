@@ -402,13 +402,13 @@ func saveBackupFilesConcurrent(store *storage.Store, backupData map[string]inter
 	close(errChan)
 
 	// Collect errors
-	var errors []error
+	var errs []error
 	for err := range errChan {
-		errors = append(errors, err)
+		errs = append(errs, err)
 	}
 
-	if len(errors) > 0 {
-		return fmt.Errorf("save errors: %v", errors)
+	if len(errs) > 0 {
+		return fmt.Errorf("save errors: %v", errs)
 	}
 
 	return nil
@@ -425,20 +425,24 @@ func saveJSONBuffered(path string, data interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	// Use buffered writer for better I/O performance
 	writer := bufio.NewWriterSize(file, writeBufferSize)
 
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(data); err != nil {
-		return fmt.Errorf("failed to encode JSON: %w", err)
+	if encodeErr := encoder.Encode(data); encodeErr != nil {
+		return fmt.Errorf("failed to encode JSON: %w", encodeErr)
 	}
 
 	// Flush the buffer
-	if err := writer.Flush(); err != nil {
-		return fmt.Errorf("failed to flush buffer: %w", err)
+	if flushErr := writer.Flush(); flushErr != nil {
+		return fmt.Errorf("failed to flush buffer: %w", flushErr)
 	}
 
 	return nil
@@ -460,19 +464,23 @@ func createBackupBuffered(store *storage.Store, backupType string, data interfac
 	if err != nil {
 		return nil, fmt.Errorf("failed to create backup file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close backup file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	// Use buffered writer
 	writer := bufio.NewWriterSize(file, writeBufferSize)
 
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(data); err != nil {
-		return nil, fmt.Errorf("failed to encode backup: %w", err)
+	if encodeErr := encoder.Encode(data); encodeErr != nil {
+		return nil, fmt.Errorf("failed to encode backup: %w", encodeErr)
 	}
 
-	if err := writer.Flush(); err != nil {
-		return nil, fmt.Errorf("failed to flush buffer: %w", err)
+	if flushErr := writer.Flush(); flushErr != nil {
+		return nil, fmt.Errorf("failed to flush buffer: %w", flushErr)
 	}
 
 	// Get file size
