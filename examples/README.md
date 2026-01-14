@@ -2,55 +2,27 @@
 
 This directory contains example code demonstrating how to use the Spotigo Go library.
 
-## Examples
+## Runnable Examples
 
-### 1. Basic Usage (`basic_usage.go`)
-Demonstrates the core components of the Spotigo library:
+### Basic Usage (`runnable/basic_usage.go`)
+A complete runnable example demonstrating the core components of the Spotigo library:
 - Spotify client initialization
 - Ollama client setup  
 - RAG store creation
 - Sample document creation
 
 ```bash
-cd examples
+cd examples/runnable
 go run basic_usage.go
 ```
 
-### 2. Backup System (`backup_example.go`)
-Shows how to use Spotigo's backup functionality:
-- Configuration loading
-- Spotify client setup
-- Storage management
-- Backup data structures
+## Library Reference Examples (`spotigo_examples.go`)
+Contains example functions for all major Spotigo components:
+- Backup system usage
+- RAG (Retrieval-Augmented Generation) functionality
+- Chat interface with local LLMs
 
-```bash
-cd examples
-go run backup_example.go
-```
-
-### 3. RAG (Retrieval-Augmented Generation) (`rag_example.go`)
-Demonstrates semantic search and embedding capabilities:
-- Document creation and management
-- Vector store operations
-- Semantic search queries
-- Persistence and statistics
-
-```bash
-cd examples
-go run rag_example.go
-```
-
-### 4. Chat Interface (`chat_example.go`)
-Illustrates the chat functionality with local LLMs:
-- Ollama client configuration
-- Conversation management
-- Context handling
-- Model tier selection
-
-```bash
-cd examples
-go run chat_example.go
-```
+These examples are meant to be used as reference code rather than runnable programs.
 
 ## Library Components
 
