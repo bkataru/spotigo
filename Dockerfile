@@ -30,12 +30,9 @@ WORKDIR /home/spotigo
 # Copy binary from builder
 COPY --from=builder /spotigo /usr/local/bin/spotigo
 
-# Copy config files
-COPY --from=builder /app/config ./config
-
 # Create data directories
 RUN mkdir -p data/backups data/embeddings && \
-    chown -R spotigo:spotigo /home/spotigo
+  chown -R spotigo:spotigo /home/spotigo
 
 # Switch to non-root user
 USER spotigo

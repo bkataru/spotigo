@@ -44,7 +44,6 @@ archives:
     files:
       - README.md
       - LICENSE
-      - config/*.yaml
 
 checksum:
   name_template: "checksums.txt"
