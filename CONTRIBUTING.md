@@ -39,7 +39,7 @@ git clone https://github.com/YOUR_USERNAME/spotigo.git
 cd spotigo
 
 # Add upstream remote
-git remote add upstream https://github.com/bkataru-workshop/spotigo.git
+git remote add upstream https://github.com/bkataru/spotigo.git
 
 # Install dependencies
 go mod download

@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/bkataru-workshop/spotigo/internal/ollama"
-	"github.com/bkataru-workshop/spotigo/internal/rag"
-	"github.com/bkataru-workshop/spotigo/internal/spotify"
+	"github.com/bkataru/spotigo/internal/ollama"
+	"github.com/bkataru/spotigo/internal/rag"
+	"github.com/bkataru/spotigo/internal/spotify"
 )
 
 func main() {

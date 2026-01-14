@@ -14,7 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/bkataru-workshop/spotigo/internal/spotify"
+	"github.com/bkataru/spotigo/internal/spotify"
 )
 
 var authCmd = &cobra.Command{

@@ -414,7 +414,7 @@ Allows users to balance performance vs. quality based on hardware capabilities.
 ### Installation
 ```bash
 # From source
-git clone https://github.com/bkataru-workshop/spotigo
+git clone https://github.com/bkataru/spotigo
 cd spotigo
 make build
 

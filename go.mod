@@ -1,4 +1,4 @@
-module github.com/bkataru-workshop/spotigo
+module github.com/bkataru/spotigo
 
 go 1.24.0
 

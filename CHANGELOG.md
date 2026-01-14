@@ -123,6 +123,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | 2.0.0 | 2024-01-14 | Complete AI-powered platform with OAuth, backup, chat, search, and TUI |
 | 1.0.0 | 2024-01-13 | Initial project structure |
 
-[Unreleased]: https://github.com/bkataru-workshop/spotigo/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/bkataru-workshop/spotigo/compare/v1.0.0...v2.0.0
-[1.0.0]: https://github.com/bkataru-workshop/spotigo/releases/tag/v1.0.0
+[Unreleased]: https://github.com/bkataru/spotigo/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/bkataru/spotigo/compare/v1.0.0...v2.0.0
+[1.0.0]: https://github.com/bkataru/spotigo/releases/tag/v1.0.0

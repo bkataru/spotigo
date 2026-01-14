@@ -1,10 +1,10 @@
 # Spotigo Go Library
 
-[![CI](https://github.com/bkataru-workshop/spotigo/actions/workflows/ci.yml/badge.svg)](https://github.com/bkataru-workshop/spotigo/actions/workflows/ci.yml)
+[![CI](https://github.com/bkataru/spotigo/actions/workflows/ci.yml/badge.svg)](https://github.com/bkataru/spotigo/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/bkataru-workshop/spotigo)](https://goreportcard.com/report/github.com/bkataru-workshop/spotigo)
-[![Go Reference](https://pkg.go.dev/badge/github.com/bkataru-workshop/spotigo.svg)](https://pkg.go.dev/github.com/bkataru-workshop/spotigo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bkataru/spotigo)](https://goreportcard.com/report/github.com/bkataru/spotigo)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bkataru/spotigo.svg)](https://pkg.go.dev/github.com/bkataru/spotigo)
 
 **A Go library for AI-powered Spotify library management with local RAG capabilities.**
 
@@ -48,14 +48,14 @@ Spotigo provides a comprehensive Go library for interacting with Spotify APIs, m
 ### Go Module
 
 ```bash
-go get github.com/bkataru-workshop/spotigo@latest
+go get github.com/bkataru/spotigo@latest
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/bkataru-workshop/spotigo.git
+git clone https://github.com/bkataru/spotigo.git
 cd spotigo
 
 # Use as a library dependency in your go.mod
@@ -73,9 +73,9 @@ import (
     "fmt"
     "log"
 
-    "github.com/bkataru-workshop/spotigo/internal/spotify"
-    "github.com/bkataru-workshop/spotigo/internal/ollama"
-    "github.com/bkataru-workshop/spotigo/internal/rag"
+    "github.com/bkataru/spotigo/internal/spotify"
+    "github.com/bkataru/spotigo/internal/ollama"
+    "github.com/bkataru/spotigo/internal/rag"
 )
 
 func main() {
@@ -214,7 +214,7 @@ store := rag.NewStore(ollamaClient, "qwen3-embedding:0.6b", "/path/to/store.json
 
 ```bash
 # Clone the repository
-git clone https://github.com/bkataru-workshop/spotigo.git
+git clone https://github.com/bkataru/spotigo.git
 cd spotigo
 
 # Install dependencies

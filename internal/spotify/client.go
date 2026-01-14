@@ -12,7 +12,7 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 
-	"github.com/bkataru-workshop/spotigo/internal/crypto"
+	"github.com/bkataru/spotigo/internal/crypto"
 )
 
 // Scopes required for full library access

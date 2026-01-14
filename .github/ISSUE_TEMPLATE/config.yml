@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/bkataru-workshop/spotigo#readme
+    url: https://github.com/bkataru/spotigo#readme
     about: Check the README for documentation and troubleshooting
   - name: Security Vulnerabilities
-    url: https://github.com/bkataru-workshop/spotigo/security/policy
+    url: https://github.com/bkataru/spotigo/security/policy
     about: Please report security vulnerabilities privately via email
   - name: Discussions
-    url: https://github.com/bkataru-workshop/spotigo/discussions
+    url: https://github.com/bkataru/spotigo/discussions
     about: Ask questions and discuss ideas with the community
