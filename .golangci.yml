@@ -5,12 +5,6 @@ run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
-  skip-dirs-use-default: false
-  skip-dirs:
-    - vendor
-    - data
-    - bin
-    - dist
 
 output:
   formats:
