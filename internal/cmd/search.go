@@ -43,7 +43,9 @@ func runSearch(query string) {
 	fmt.Printf("  Limit: %d\n", searchLimit)
 	fmt.Println()
 
-	// TODO: Implement RAG search
-	fmt.Println("Search requires a backup to exist first.")
-	fmt.Println("Run 'spotigo backup' to create a searchable index.")
+	// RAG semantic search is not yet implemented
+	fmt.Println("Semantic search is not yet implemented.")
+	fmt.Println("This feature will use chromem-go for vector embeddings.")
+	fmt.Println()
+	fmt.Println("For now, run 'spotigo backup' to save your library locally.")
 }
