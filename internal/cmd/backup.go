@@ -3,9 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
+	"spotigo/internal/config"
+	"spotigo/internal/ollama"
+	"spotigo/internal/rag"
 	"spotigo/internal/spotify"
 	"spotigo/internal/storage"
 )
@@ -14,6 +19,7 @@ var (
 	backupFull     bool
 	backupType     string
 	backupSchedule string
+	backupIndex    bool
 	backupCmd      = &cobra.Command{
 		Use:   "backup",
 		Short: "Backup your Spotify library",
@@ -27,12 +33,24 @@ This includes:
   - Recently played tracks
   - Top tracks and artists
 
-Data is stored in the configured data directory (default: ./data/backups).`,
+Data is stored in the configured data directory (default: ./data/backups).
+
+Use --index to automatically build the search index after backup.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			runBackup(cmd)
 		},
 	}
 )
+
+func init() {
+	backupCmd.Flags().BoolVar(&backupFull, "full", false, "perform full backup including all data types")
+	backupCmd.Flags().StringVar(&backupType, "type", "all", "backup type: all, tracks, playlists, artists")
+	backupCmd.Flags().BoolVar(&backupIndex, "index", false, "build search index after backup (requires Ollama)")
+
+	backupCmd.AddCommand(backupListCmd)
+	backupCmd.AddCommand(backupRestoreCmd)
+	backupCmd.AddCommand(backupStatusCmd)
+}
 
 var backupListCmd = &cobra.Command{
 	Use:   "list",
@@ -63,6 +81,9 @@ func runBackup(cmd *cobra.Command) {
 	fmt.Println("Starting Spotify library backup...")
 	fmt.Printf("  Type: %s\n", backupType)
 	fmt.Printf("  Full: %v\n", backupFull)
+	if backupIndex {
+		fmt.Printf("  Index: enabled\n")
+	}
 	fmt.Println()
 
 	// Check authentication
@@ -87,7 +108,7 @@ func runBackup(cmd *cobra.Command) {
 	}
 
 	if !client.IsAuthenticated() {
-		fmt.Println("❌ Not authenticated with Spotify")
+		fmt.Println("Not authenticated with Spotify")
 		fmt.Println("Run 'spotigo auth' to authenticate first.")
 		return
 	}
@@ -97,11 +118,23 @@ func runBackup(cmd *cobra.Command) {
 
 	// Perform backup
 	if err := performBackup(client, store, backupType); err != nil {
-		fmt.Printf("❌ Backup failed: %v\n", err)
+		fmt.Printf("Backup failed: %v\n", err)
 		return
 	}
 
-	fmt.Println("✅ Backup completed successfully!")
+	fmt.Println("Backup completed successfully!")
+
+	// Build search index if requested
+	if backupIndex {
+		fmt.Println()
+		fmt.Println("Building search index...")
+		if err := buildSearchIndex(cfg); err != nil {
+			fmt.Printf("Warning: Failed to build search index: %v\n", err)
+			fmt.Println("You can run 'spotigo search index' manually later.")
+		} else {
+			fmt.Println("Search index built successfully!")
+		}
+	}
 }
 
 func performBackup(client *spotify.Client, store *storage.Store, backupType string) error {
@@ -300,4 +333,59 @@ func showBackupStatus() {
 
 	fmt.Printf("  Schedule: %s\n", cfg.Backup.Schedule)
 	fmt.Printf("  Retention: %d days\n", cfg.Backup.RetainDays)
+}
+
+// buildSearchIndex creates vector embeddings for semantic search
+func buildSearchIndex(cfg *config.Config) error {
+	// Create Ollama client
+	ollamaClient := ollama.NewClient(cfg.Ollama.Host, time.Duration(cfg.Ollama.Timeout)*time.Second)
+
+	// Check if Ollama is available
+	ctx := context.Background()
+	if err := ollamaClient.Ping(ctx); err != nil {
+		return fmt.Errorf("ollama not available: %w", err)
+	}
+
+	// Load the vector store
+	embeddingModel := "nomic-embed-text"
+	storePath := filepath.Join(cfg.Storage.EmbeddingsDir, "vectors.json")
+	store := rag.NewStore(ollamaClient, embeddingModel, storePath)
+
+	// Load backup data and create documents
+	docs, err := loadBackupDocuments(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to load backup data: %w", err)
+	}
+
+	if len(docs) == 0 {
+		return fmt.Errorf("no backup data to index")
+	}
+
+	fmt.Printf("  Indexing %d items...\n", len(docs))
+
+	// Add documents with progress
+	for i, doc := range docs {
+		if err := store.Add(ctx, doc); err != nil {
+			// Log but continue on individual failures
+			continue
+		}
+
+		// Show progress every 25 items
+		if (i+1)%25 == 0 || i+1 == len(docs) {
+			fmt.Printf("  Indexed %d/%d items...\r", i+1, len(docs))
+		}
+	}
+	fmt.Println()
+
+	// Save the store
+	if err := store.Save(); err != nil {
+		return fmt.Errorf("failed to save index: %w", err)
+	}
+
+	counts := store.CountByType()
+	for typ, count := range counts {
+		fmt.Printf("  - %s: %d\n", typ, count)
+	}
+
+	return nil
 }
