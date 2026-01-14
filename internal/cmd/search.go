@@ -202,12 +202,7 @@ func runSearchIndex() {
 	store := rag.NewStore(client, searchModel, storePath)
 
 	// Load backup data and create documents
-	docs, err := loadBackupDocuments(cfg)
-	if err != nil {
-		fmt.Printf("Error loading backup data: %v\n", err)
-		return
-	}
-
+	docs := loadBackupDocuments(cfg)
 	if len(docs) == 0 {
 		fmt.Println("No backup data found.")
 		fmt.Println("Run 'spotigo backup' first to save your Spotify library.")
@@ -247,7 +242,7 @@ func runSearchIndex() {
 	}
 }
 
-func loadBackupDocuments(cfg *config.Config) ([]rag.Document, error) {
+func loadBackupDocuments(cfg *config.Config) []rag.Document {
 	var docs []rag.Document
 
 	// Load saved tracks
@@ -277,7 +272,7 @@ func loadBackupDocuments(cfg *config.Config) ([]rag.Document, error) {
 		}
 	}
 
-	return docs, nil
+	return docs
 }
 
 func loadTracksFromFile(path string) ([]rag.TrackData, error) {

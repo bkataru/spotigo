@@ -38,7 +38,7 @@ func (s *Store) SaveJSON(filename string, data interface{}) error {
 	path := filepath.Join(s.dataDir, filename)
 
 	// Ensure parent directory exists
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
@@ -46,7 +46,12 @@ func (s *Store) SaveJSON(filename string, data interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log the error but don't override the original error
+			fmt.Printf("Warning: failed to close file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
@@ -65,7 +70,12 @@ func (s *Store) LoadJSON(filename string, target interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log the error but don't override the original error
+			fmt.Printf("Warning: failed to close file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	if err := json.NewDecoder(file).Decode(target); err != nil {
 		return fmt.Errorf("failed to decode JSON: %w", err)
@@ -82,7 +92,7 @@ func (s *Store) CreateBackup(backupType string, data interface{}) (*BackupMetada
 	path := filepath.Join(s.backupDir, filename)
 
 	// Ensure backup directory exists
-	if err := os.MkdirAll(s.backupDir, 0755); err != nil {
+	if err := os.MkdirAll(s.backupDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
@@ -90,12 +100,17 @@ func (s *Store) CreateBackup(backupType string, data interface{}) (*BackupMetada
 	if err != nil {
 		return nil, fmt.Errorf("failed to create backup file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log the error but don't override the original error
+			fmt.Printf("Warning: failed to close backup file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(data); err != nil {
-		return nil, fmt.Errorf("failed to encode backup: %w", err)
+	if encErr := encoder.Encode(data); encErr != nil {
+		return nil, fmt.Errorf("failed to encode backup: %w", encErr)
 	}
 
 	// Get file size
@@ -123,7 +138,7 @@ func (s *Store) ListBackups() ([]BackupMetadata, error) {
 		return nil, fmt.Errorf("failed to read backup directory: %w", err)
 	}
 
-	var backups []BackupMetadata
+	backups := make([]BackupMetadata, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -181,7 +196,12 @@ func (s *Store) LoadBackupJSON(backupID string, target interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to open backup file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log the error but don't override the original error
+			fmt.Printf("Warning: failed to close backup file %s: %v\n", path, closeErr)
+		}
+	}()
 
 	if err := json.NewDecoder(file).Decode(target); err != nil {
 		return fmt.Errorf("failed to decode backup JSON: %w", err)

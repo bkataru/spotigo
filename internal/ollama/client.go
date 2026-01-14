@@ -103,7 +103,10 @@ func (c *Client) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, erro
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("ollama error (status %d) and failed to read response body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("ollama error (status %d): %s", resp.StatusCode, string(body))
 	}
 
@@ -140,7 +143,10 @@ func (c *Client) Embed(ctx context.Context, model string, input string) ([]float
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("ollama error (status %d) and failed to read response body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("ollama error (status %d): %s", resp.StatusCode, string(body))
 	}
 
@@ -170,7 +176,10 @@ func (c *Client) ListModels(ctx context.Context) ([]ModelInfo, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("ollama error (status %d) and failed to read response body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("ollama error (status %d): %s", resp.StatusCode, string(body))
 	}
 
@@ -247,7 +256,10 @@ func (c *Client) PullModel(ctx context.Context, modelName string, callback PullP
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read error response body: %w", err)
+		}
 		return fmt.Errorf("ollama error (status %d): %s", resp.StatusCode, string(body))
 	}
 

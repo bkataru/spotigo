@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -268,8 +269,7 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 
 			// Send success response
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, ` //nolint:errcheck // HTTP response writing errors are handled by the server
-<!DOCTYPE html>
+			if _, err := fmt.Fprintf(w, `<!DOCTYPE html>
 <html>
 <head><title>Spotigo - Authentication Successful</title></head>
 <body>
@@ -279,7 +279,9 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 		setTimeout(() => window.close(), 3000);
 	</script>
 </body>
-</html>`)
+</html>`); err != nil {
+				log.Printf("Failed to write auth success response: %v", err)
+			}
 			done <- nil
 		}),
 	}

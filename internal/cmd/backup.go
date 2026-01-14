@@ -463,10 +463,7 @@ func buildSearchIndex(cfg *config.Config) error {
 	store := rag.NewStore(ollamaClient, embeddingModel, storePath)
 
 	// Load backup data and create documents
-	docs, err := loadBackupDocuments(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to load backup data: %w", err)
-	}
+	docs := loadBackupDocuments(cfg)
 
 	if len(docs) == 0 {
 		return fmt.Errorf("no backup data to index")

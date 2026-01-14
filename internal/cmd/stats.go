@@ -418,7 +418,7 @@ func computeTopAlbums(cfg *config.Config) ([]ArtistCount, error) {
 		}
 	}
 
-	var albums []ArtistCount
+	albums := make([]ArtistCount, 0, len(albumCounts))
 	for name, count := range albumCounts {
 		albums = append(albums, ArtistCount{Name: name, Count: count})
 	}

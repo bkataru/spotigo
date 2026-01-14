@@ -182,11 +182,11 @@ func BenchmarkCosineSimilarity_VectorSizes(b *testing.B) {
 	for _, size := range sizes {
 		b.Run(fmt.Sprintf("dim=%d", size), func(b *testing.B) {
 			a := generateRandomEmbedding(size)
-			b_vec := generateRandomEmbedding(size)
+			bVec := generateRandomEmbedding(size)
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				_ = cosineSimilarity(a, b_vec)
+				_ = cosineSimilarity(a, bVec)
 			}
 		})
 	}

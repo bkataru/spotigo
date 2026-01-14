@@ -2,6 +2,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -85,14 +86,23 @@ func Load(cfgFile string) (*Config, error) {
 	viper.AutomaticEnv()
 
 	// Map environment variables to config keys
-	viper.BindEnv("spotify.client_id", "SPOTIFY_CLIENT_ID", "SPOTIFY_ID")
-	viper.BindEnv("spotify.client_secret", "SPOTIFY_CLIENT_SECRET", "SPOTIFY_SECRET")
-	viper.BindEnv("ollama.host", "OLLAMA_HOST")
-	viper.BindEnv("storage.data_dir", "SPOTIGO_DATA_DIR")
+	if err := viper.BindEnv("spotify.client_id", "SPOTIFY_CLIENT_ID", "SPOTIFY_ID"); err != nil {
+		return nil, fmt.Errorf("failed to bind env spotify.client_id: %w", err)
+	}
+	if err := viper.BindEnv("spotify.client_secret", "SPOTIFY_CLIENT_SECRET", "SPOTIFY_SECRET"); err != nil {
+		return nil, fmt.Errorf("failed to bind env spotify.client_secret: %w", err)
+	}
+	if err := viper.BindEnv("ollama.host", "OLLAMA_HOST"); err != nil {
+		return nil, fmt.Errorf("failed to bind env ollama.host: %w", err)
+	}
+	if err := viper.BindEnv("storage.data_dir", "SPOTIGO_DATA_DIR"); err != nil {
+		return nil, fmt.Errorf("failed to bind env storage.data_dir: %w", err)
+	}
 
 	// Read config file (optional)
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		var configFileNotFoundErr viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundErr) {
 			return nil, fmt.Errorf("error reading config: %w", err)
 		}
 		// Config file not found is OK, use defaults + env
@@ -147,7 +157,7 @@ func ensureDirectories(cfg *Config) error {
 		if err != nil {
 			return fmt.Errorf("invalid directory path %s: %w", dir, err)
 		}
-		if err := os.MkdirAll(absDir, 0755); err != nil {
+		if err := os.MkdirAll(absDir, 0750); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", absDir, err)
 		}
 	}

@@ -12,8 +12,9 @@ import (
 	"sort"
 	"sync"
 
-	"go.uber.org/multierr"
 	"spotigo/internal/ollama"
+
+	"go.uber.org/multierr"
 )
 
 // Document represents a searchable item in the vector store
@@ -139,8 +140,11 @@ func (s *Store) AddBatchParallel(ctx context.Context, docs []Document, concurren
 	for _, idx := range needsEmbedding {
 		select {
 		case <-ctx.Done():
-			// Context cancelled, stop sending jobs
-			break
+			// Context canceled, stop sending jobs
+			close(jobs)
+			wg.Wait()
+			close(results)
+			return ctx.Err()
 		case jobs <- idx:
 			// Job sent successfully
 		}
@@ -199,7 +203,7 @@ func (s *Store) Search(ctx context.Context, query string, limit int, docType str
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var results []SearchResult
+	results := make([]SearchResult, 0, len(s.documents))
 	for _, doc := range s.documents {
 		// Filter by type if specified
 		if docType != "" && docType != "all" && doc.Type != docType {
@@ -261,7 +265,7 @@ func (s *Store) Save() error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(s.storePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
@@ -276,7 +280,7 @@ func (s *Store) Save() error {
 		return fmt.Errorf("failed to marshal documents: %w", err)
 	}
 
-	if err := os.WriteFile(s.storePath, data, 0644); err != nil {
+	if err := os.WriteFile(s.storePath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write store: %w", err)
 	}
 

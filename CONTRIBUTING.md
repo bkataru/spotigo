@@ -1,6 +1,6 @@
-# Contributing to Spotigo
+# Contributing to Spotigo Go Library
 
-Thank you for your interest in contributing to Spotigo! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to the Spotigo Go library! This document provides guidelines and information for contributors.
 
 ## Table of Contents
 
@@ -24,12 +24,10 @@ Please be respectful and constructive in all interactions. We're building someth
 - **Go 1.23+** - [Download](https://go.dev/dl/)
 - **Ollama** - [Install](https://ollama.ai/) (for testing AI features)
 - **Git** - For version control
-- **Make** - Optional but recommended
 
-### Development Environment Options
+### Development Environment
 
-1. **Local Development** - Standard Go development setup
-2. **Dev Container** - VS Code with Docker (recommended for consistency)
+Standard Go development setup is recommended for library development.
 
 ## Development Setup
 
@@ -47,31 +45,7 @@ git remote add upstream https://github.com/bkataru-workshop/spotigo.git
 go mod download
 
 # Verify setup
-make quality
-```
-
-### Dev Container Setup
-
-1. Install [VS Code](https://code.visualstudio.com/) and the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-2. Open the project folder
-3. Click "Reopen in Container" when prompted
-4. The container includes Go, Ollama, and all necessary tools
-
-### Running Locally
-
-```bash
-# Start Ollama (in separate terminal)
-ollama serve
-
-# Pull test models
-ollama pull qwen3:0.6b  # Small model for testing
-
-# Run the application
-go run ./cmd/spotigo
-
-# Or build and run
-make build
-./bin/spotigo
+go test ./...
 ```
 
 ## Making Changes
@@ -94,11 +68,12 @@ make build
 3. **Make changes** following our code style
 4. **Test** your changes:
    ```bash
-   make quality  # Runs fmt, vet, and test
+   go test ./...
+   golangci-lint run
    ```
 5. **Commit** with clear messages:
    ```bash
-   git commit -m "feat: add playlist export feature"
+   git commit -m "feat: add new API feature"
    ```
 6. **Push** to your fork:
    ```bash
@@ -172,7 +147,7 @@ test(rag): add vector store benchmarks
 We use `golangci-lint` for comprehensive linting:
 
 ```bash
-make lint
+golangci-lint run
 ```
 
 Common linter issues:
@@ -299,19 +274,15 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ```
 spotigo/
-├── cmd/spotigo/         # Application entry point
-├── internal/            # Private application code
-│   ├── cmd/             # CLI commands
-│   ├── config/          # Configuration
+├── internal/            # Library implementation
+│   ├── config/          # Configuration management
 │   ├── crypto/          # Encryption utilities
 │   ├── jsonutil/        # JSON helpers
 │   ├── ollama/          # Ollama API client
-│   ├── rag/             # Vector store
+│   ├── rag/             # RAG vector store
 │   ├── spotify/         # Spotify API client
-│   ├── storage/         # File storage
-│   └── tui/             # Terminal UI
-├── config/              # Configuration files
-├── .devcontainer/       # Dev container setup
+│   └── storage/         # Local file storage
+├── cmd/spotigo/         # CLI example application
 └── .github/             # GitHub Actions
 ```
 

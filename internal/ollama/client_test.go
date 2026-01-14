@@ -320,8 +320,6 @@ func TestOptions_Structure(t *testing.T) {
 	opts := Options{
 		Temperature: 0.8,
 		NumPredict:  2048,
-		TopK:        40,
-		TopP:        0.95,
 	}
 
 	if opts.Temperature != 0.8 {

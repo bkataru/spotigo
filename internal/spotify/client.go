@@ -130,9 +130,9 @@ func (c *Client) loadToken(filename string) (*oauth2.Token, error) {
 
 	// Check if the file is encrypted
 	if crypto.IsEncryptedFile(filename) {
-		encryptor, err := crypto.NewTokenEncryptor()
-		if err != nil {
-			return nil, fmt.Errorf("failed to create encryptor: %w", err)
+		encryptor, createErr := crypto.NewTokenEncryptor()
+		if createErr != nil {
+			return nil, fmt.Errorf("failed to create encryptor: %w", createErr)
 		}
 		data, err = encryptor.LoadEncryptedFile(filename)
 		if err != nil {

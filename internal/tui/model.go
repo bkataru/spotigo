@@ -1,3 +1,5 @@
+// Package tui provides terminal user interface components for Spotigo.
+// It includes menu navigation, command execution, and interactive displays.
 package tui
 
 import (
@@ -13,6 +15,8 @@ type Choice struct {
 	Command string
 }
 
+// Model represents the TUI state and handles user interactions.
+// It manages menu navigation, command execution, and display rendering.
 type Model struct {
 	choices  []Choice
 	cursor   int
@@ -20,6 +24,7 @@ type Model struct {
 	quitting bool
 }
 
+// InitialModel creates a new TUI model with default settings.
 func InitialModel() Model {
 	return Model{
 		choices: []Choice{
@@ -37,10 +42,12 @@ func InitialModel() Model {
 	}
 }
 
+// Init initializes the TUI model and returns any initial commands.
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles user input and state changes in the TUI.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -64,6 +71,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the current TUI state as a string for display.
 func (m Model) View() string {
 	title := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FAFAFA")).

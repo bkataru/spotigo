@@ -44,7 +44,9 @@ All data stays local. All AI runs locally via Ollama.`,
 			return
 		}
 		// Default: show help
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			fmt.Printf("Error showing help: %v\n", err)
+		}
 	},
 }
 
@@ -60,7 +62,9 @@ func init() {
 	rootCmd.PersistentFlags().Bool("verbose", false, "enable verbose output")
 
 	// Bind flags to viper
-	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	if err := viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")); err != nil {
+		fmt.Printf("Error binding verbose flag: %v\n", err)
+	}
 
 	// Add subcommands
 	rootCmd.AddCommand(backupCmd)

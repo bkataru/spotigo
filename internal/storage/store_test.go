@@ -271,11 +271,10 @@ func TestStore_Exists(t *testing.T) {
 
 func TestBackupMetadata_Structure(t *testing.T) {
 	meta := BackupMetadata{
-		ID:        "20240115-120000",
-		Timestamp: time.Now(),
-		Type:      "full",
-		Items:     100,
-		Size:      1024,
+		ID:    "20240115-120000",
+		Type:  "full",
+		Items: 100,
+		Size:  1024,
 	}
 
 	if meta.ID == "" {
