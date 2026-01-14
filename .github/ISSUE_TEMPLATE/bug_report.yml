@@ -1,0 +1,158 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Spotigo
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below to help us understand and fix the issue.
+
+  - type: checkboxes
+    id: existing-issues
+    attributes:
+      label: Existing Issues
+      description: Please search existing issues to avoid duplicates
+      options:
+        - label: I have searched the existing issues and this bug has not been reported
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run command '...'
+        2. Enter input '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe what you expected...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: Please paste any relevant error messages or logs
+      render: shell
+      placeholder: |
+        Paste error messages or logs here...
+        
+        You can run with verbose mode:
+        SPOTIGO_VERBOSE=true spotigo <command>
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      options:
+        - Authentication (auth)
+        - Backup/Restore
+        - AI Chat
+        - Search
+        - Statistics
+        - TUI Interface
+        - Model Management
+        - Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Spotigo Version
+      description: "Run: spotigo --version"
+      placeholder: "e.g., 2.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go Version
+      description: "Run: go version"
+      placeholder: "e.g., go1.23.0"
+
+  - type: input
+    id: ollama-version
+    attributes:
+      label: Ollama Version
+      description: "Run: ollama --version"
+      placeholder: "e.g., 0.1.20"
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Windows
+        - Docker
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS Version
+      placeholder: "e.g., Ubuntu 22.04, macOS 14.0, Windows 11"
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration (sanitized)
+      description: |
+        Relevant parts of your spotigo.yaml (remove sensitive data!)
+        DO NOT include client_id, client_secret, or tokens
+      render: yaml
+      placeholder: |
+        ollama:
+          host: "http://localhost:11434"
+          timeout: 30
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or information that might help
+      placeholder: Add any other context about the problem here...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute a fix?
+      options:
+        - label: I would be willing to submit a PR to fix this issue

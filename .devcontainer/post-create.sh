@@ -33,28 +33,21 @@ if curl -s http://ollama:11434/api/tags > /dev/null 2>&1; then
     
     # Core models - ordered by priority
     models=(
-        "granite4:1b"           # Primary chat (3.3GB)
-        "granite4:350m"         # Fast tasks (708MB)
-        "nomic-embed-text-v2-moe"  # Embeddings (957MB)
-        "qwen3:0.6b"            # Fallback chat (522MB)
+        "llama3.2"              # Primary chat model
+        "nomic-embed-text"      # Embeddings model for RAG
     )
     
     for model in "${models[@]}"; do
         echo "Pulling $model..."
-        curl -s http://ollama:11434/api/pull -d "{\"name\": \"$model\"}" | while read line; do
-            status=$(echo "$line" | jq -r '.status // empty')
-            if [ -n "$status" ]; then
-                echo "  $status"
-            fi
-        done
+        ollama pull "$model"
         echo "  Done: $model"
     done
     
     echo ""
     echo "Optional models (pull manually if needed):"
-    echo "  ollama pull qwen3:1.7b           # Complex reasoning (1.4GB)"
-    echo "  ollama pull functiongemma        # Function calling (300MB)"
-    echo "  ollama pull qwen3-embedding:0.6b # Fallback embeddings (639MB)"
+    echo "  ollama pull granite4:1b           # Alternative chat model"
+    echo "  ollama pull qwen3:0.6b            # Lightweight chat model"
+    echo "  ollama pull nomic-embed-text-v2-moe # Advanced embeddings"
 fi
 
 echo ""

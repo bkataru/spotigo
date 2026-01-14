@@ -86,36 +86,54 @@ func GetConfig() *config.Config {
 }
 
 func runTUI() {
-	p := bubbletea.NewProgram(tui.InitialModel(), bubbletea.WithAltScreen())
+	model := tui.InitialModel()
+	p := bubbletea.NewProgram(model, bubbletea.WithAltScreen())
 
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+	finalModel, err := p.Run()
+	if err != nil {
+		fmt.Printf("Error running TUI: %v\n", err)
 		return
 	}
 
-	// Handle the selected choice based on cursor position
-	choice := tui.GetSelectedChoice(tui.InitialModel())
-	if choice == "" {
+	// Type assert to get the final model state
+	m, ok := finalModel.(tui.Model)
+	if !ok {
+		fmt.Println("Error: unexpected model type")
 		return
 	}
 
-	fmt.Printf("Selected: %s\n", choice)
+	// Check if user quit without selecting
+	if m.IsQuitting() {
+		fmt.Println("Goodbye!")
+		return
+	}
+
+	// Get the selected command
+	command := m.GetSelectedCommand()
+	if command == "" {
+		return
+	}
+
+	fmt.Printf("\nSelected: %s\n\n", m.GetSelectedDisplay())
 
 	// Execute the corresponding command
-	switch choice {
-	case "🎵 Backup Library":
-		fmt.Println("Run: spotigo backup")
-	case "💬 AI Chat":
-		fmt.Println("Run: spotigo chat")
-	case "🔍 Search Music":
-		fmt.Println("Run: spotigo search \"your query\"")
-	case "📊 Statistics":
-		fmt.Println("Run: spotigo stats")
-	case "🔑 Auth Status":
-		fmt.Println("Run: spotigo auth status")
-	case "🤖 Models Status":
-		fmt.Println("Run: spotigo models status")
-	case "❌ Exit":
+	switch command {
+	case "backup":
+		backupCmd.Run(backupCmd, []string{})
+	case "chat":
+		chatCmd.Run(chatCmd, []string{})
+	case "search":
+		fmt.Println("Enter your search query:")
+		fmt.Println("  spotigo search \"your query here\"")
+		fmt.Println()
+		fmt.Println("Or run 'spotigo search index' first to build the search index.")
+	case "stats":
+		statsCmd.Run(statsCmd, []string{})
+	case "auth-status":
+		authStatusCmd.Run(authStatusCmd, []string{})
+	case "models-status":
+		modelsStatusCmd.Run(modelsStatusCmd, []string{})
+	case "exit":
 		fmt.Println("Goodbye!")
 	}
 }

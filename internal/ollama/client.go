@@ -201,3 +201,92 @@ func (c *Client) Ping(ctx context.Context) error {
 
 	return nil
 }
+
+// PullRequest represents a model pull request
+type PullRequest struct {
+	Name   string `json:"name"`
+	Stream bool   `json:"stream"`
+}
+
+// PullProgress represents progress during a model pull
+type PullProgress struct {
+	Status    string `json:"status"`
+	Digest    string `json:"digest,omitempty"`
+	Total     int64  `json:"total,omitempty"`
+	Completed int64  `json:"completed,omitempty"`
+}
+
+// PullProgressCallback is called with progress updates during model pull
+type PullProgressCallback func(progress PullProgress)
+
+// PullModel downloads a model from the Ollama library
+func (c *Client) PullModel(ctx context.Context, modelName string, callback PullProgressCallback) error {
+	req := PullRequest{
+		Name:   modelName,
+		Stream: true,
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	// Create a client without timeout for large model downloads
+	pullClient := &http.Client{}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/api/pull", bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := pullClient.Do(httpReq)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("ollama error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// Stream and parse progress updates
+	decoder := json.NewDecoder(resp.Body)
+	for {
+		var progress PullProgress
+		if err := decoder.Decode(&progress); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("failed to decode progress: %w", err)
+		}
+
+		if callback != nil {
+			callback(progress)
+		}
+
+		// Check if we're done
+		if progress.Status == "success" {
+			break
+		}
+	}
+
+	return nil
+}
+
+// HasModel checks if a specific model is available locally
+func (c *Client) HasModel(ctx context.Context, modelName string) (bool, error) {
+	models, err := c.ListModels(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	for _, model := range models {
+		if model.Name == modelName {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}

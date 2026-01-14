@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -76,8 +77,8 @@ func (s *Store) LoadJSON(filename string, target interface{}) error {
 // CreateBackup creates a timestamped backup
 func (s *Store) CreateBackup(backupType string, data interface{}) (*BackupMetadata, error) {
 	timestamp := time.Now()
-	id := timestamp.Format("20060102-150405")
-	filename := fmt.Sprintf("%s-%s.json", backupType, id)
+	timestampStr := timestamp.Format("20060102-150405")
+	filename := fmt.Sprintf("%s-%s.json", backupType, timestampStr)
 	path := filepath.Join(s.backupDir, filename)
 
 	// Ensure backup directory exists
@@ -103,8 +104,9 @@ func (s *Store) CreateBackup(backupType string, data interface{}) (*BackupMetada
 		return nil, fmt.Errorf("failed to stat backup file: %w", err)
 	}
 
+	// Use filename as ID for consistency with ListBackups
 	return &BackupMetadata{
-		ID:        id,
+		ID:        filename,
 		Timestamp: timestamp,
 		Type:      backupType,
 		Size:      info.Size(),
@@ -135,9 +137,23 @@ func (s *Store) ListBackups() ([]BackupMetadata, error) {
 			continue
 		}
 
+		// Parse backup type from filename (format: type-YYYYMMDD-HHMMSS.json)
+		backupType := ""
+		name := entry.Name()
+		if idx := strings.LastIndex(name, "-"); idx > 0 {
+			// Find the second-to-last dash (before timestamp)
+			prefix := name[:idx]
+			if idx2 := strings.LastIndex(prefix, "-"); idx2 > 0 {
+				backupType = prefix[:idx2]
+			} else {
+				backupType = prefix
+			}
+		}
+
 		backups = append(backups, BackupMetadata{
 			ID:        entry.Name(),
 			Timestamp: info.ModTime(),
+			Type:      backupType,
 			Size:      info.Size(),
 		})
 	}
@@ -150,4 +166,36 @@ func (s *Store) Exists(filename string) bool {
 	path := filepath.Join(s.dataDir, filename)
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// GetBackupPath returns the full path to a backup file
+func (s *Store) GetBackupPath(backupID string) string {
+	return filepath.Join(s.backupDir, backupID)
+}
+
+// LoadBackupJSON loads a backup file into the target structure
+func (s *Store) LoadBackupJSON(backupID string, target interface{}) error {
+	path := s.GetBackupPath(backupID)
+
+	file, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open backup file: %w", err)
+	}
+	defer file.Close()
+
+	if err := json.NewDecoder(file).Decode(target); err != nil {
+		return fmt.Errorf("failed to decode backup JSON: %w", err)
+	}
+
+	return nil
+}
+
+// GetDataDir returns the data directory path
+func (s *Store) GetDataDir() string {
+	return s.dataDir
+}
+
+// GetBackupDir returns the backup directory path
+func (s *Store) GetBackupDir() string {
+	return s.backupDir
 }

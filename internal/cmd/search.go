@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -12,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"spotigo/internal/config"
+	"spotigo/internal/jsonutil"
 	"spotigo/internal/ollama"
 	"spotigo/internal/rag"
 )
@@ -284,7 +283,7 @@ func loadBackupDocuments(cfg *config.Config) ([]rag.Document, error) {
 func loadTracksFromFile(path string) ([]rag.TrackData, error) {
 	// Load raw JSON and convert to TrackData
 	var rawTracks []map[string]interface{}
-	if err := loadJSONFile(path, &rawTracks); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &rawTracks); err != nil {
 		return nil, err
 	}
 
@@ -295,16 +294,16 @@ func loadTracksFromFile(path string) ([]rag.TrackData, error) {
 		// Extract track info - handle both spotify.SavedTrack and plain track formats
 		if trackData, ok := raw["track"].(map[string]interface{}); ok {
 			// spotify.SavedTrack format
-			track.ID = getString(trackData, "id")
-			track.Name = getString(trackData, "name")
-			track.Album = getNestedString(trackData, "album", "name")
-			track.Artists = getArtistNames(trackData)
+			track.ID = jsonutil.GetString(trackData, "id")
+			track.Name = jsonutil.GetString(trackData, "name")
+			track.Album = jsonutil.GetNestedString(trackData, "album", "name")
+			track.Artists = jsonutil.GetArtistNames(trackData)
 		} else {
 			// Plain track format
-			track.ID = getString(raw, "id")
-			track.Name = getString(raw, "name")
-			track.Album = getNestedString(raw, "album", "name")
-			track.Artists = getArtistNames(raw)
+			track.ID = jsonutil.GetString(raw, "id")
+			track.Name = jsonutil.GetString(raw, "name")
+			track.Album = jsonutil.GetNestedString(raw, "album", "name")
+			track.Artists = jsonutil.GetArtistNames(raw)
 		}
 
 		if track.ID != "" && track.Name != "" {
@@ -317,16 +316,16 @@ func loadTracksFromFile(path string) ([]rag.TrackData, error) {
 
 func loadArtistsFromFile(path string) ([]rag.ArtistData, error) {
 	var rawArtists []map[string]interface{}
-	if err := loadJSONFile(path, &rawArtists); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &rawArtists); err != nil {
 		return nil, err
 	}
 
 	var artists []rag.ArtistData
 	for _, raw := range rawArtists {
 		artist := rag.ArtistData{
-			ID:     getString(raw, "id"),
-			Name:   getString(raw, "name"),
-			Genres: getStringSlice(raw, "genres"),
+			ID:     jsonutil.GetString(raw, "id"),
+			Name:   jsonutil.GetString(raw, "name"),
+			Genres: jsonutil.GetStringSlice(raw, "genres"),
 		}
 
 		if artist.ID != "" && artist.Name != "" {
@@ -339,17 +338,17 @@ func loadArtistsFromFile(path string) ([]rag.ArtistData, error) {
 
 func loadPlaylistsFromFile(path string) ([]rag.PlaylistData, error) {
 	var rawPlaylists []map[string]interface{}
-	if err := loadJSONFile(path, &rawPlaylists); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &rawPlaylists); err != nil {
 		return nil, err
 	}
 
 	var playlists []rag.PlaylistData
 	for _, raw := range rawPlaylists {
 		playlist := rag.PlaylistData{
-			ID:          getString(raw, "id"),
-			Name:        getString(raw, "name"),
-			Description: getString(raw, "description"),
-			Owner:       getString(raw, "owner"),
+			ID:          jsonutil.GetString(raw, "id"),
+			Name:        jsonutil.GetString(raw, "name"),
+			Description: jsonutil.GetString(raw, "description"),
+			Owner:       jsonutil.GetString(raw, "owner"),
 		}
 
 		// Get track names if available
@@ -358,7 +357,7 @@ func loadPlaylistsFromFile(path string) ([]rag.PlaylistData, error) {
 			for _, t := range tracks {
 				if trackMap, ok := t.(map[string]interface{}); ok {
 					if trackData, ok := trackMap["track"].(map[string]interface{}); ok {
-						if name := getString(trackData, "name"); name != "" {
+						if name := jsonutil.GetString(trackData, "name"); name != "" {
 							playlist.TrackNames = append(playlist.TrackNames, name)
 						}
 					}
@@ -411,64 +410,4 @@ func runSearchStatus() {
 	fmt.Println()
 
 	fmt.Printf("Index location: %s\n", storePath)
-}
-
-// Helper functions for parsing JSON
-
-func loadJSONFile(path string, target interface{}) error {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, target)
-}
-
-func getString(m map[string]interface{}, key string) string {
-	if v, ok := m[key].(string); ok {
-		return v
-	}
-	return ""
-}
-
-func getNestedString(m map[string]interface{}, keys ...string) string {
-	current := m
-	for i, key := range keys {
-		if i == len(keys)-1 {
-			return getString(current, key)
-		}
-		if next, ok := current[key].(map[string]interface{}); ok {
-			current = next
-		} else {
-			return ""
-		}
-	}
-	return ""
-}
-
-func getStringSlice(m map[string]interface{}, key string) []string {
-	if v, ok := m[key].([]interface{}); ok {
-		var result []string
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				result = append(result, s)
-			}
-		}
-		return result
-	}
-	return nil
-}
-
-func getArtistNames(m map[string]interface{}) []string {
-	if artists, ok := m["artists"].([]interface{}); ok {
-		var names []string
-		for _, a := range artists {
-			if artist, ok := a.(map[string]interface{}); ok {
-				if name := getString(artist, "name"); name != "" {
-					names = append(names, name)
-				}
-			}
-		}
-		return names
-	}
-	return nil
 }

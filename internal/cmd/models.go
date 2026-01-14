@@ -201,14 +201,86 @@ func checkModelStatus() {
 }
 
 func pullModel(modelName string) {
+	cfg := GetConfig()
+	if cfg == nil {
+		fmt.Println("Error: Configuration not loaded")
+		return
+	}
+
 	fmt.Printf("Pulling model: %s\n", modelName)
 	fmt.Println("This may take a while depending on model size...")
 	fmt.Println()
 
-	// For now, we'll use the ollama CLI directly since our client doesn't support streaming pulls
-	fmt.Println("Using 'ollama pull' command directly...")
-	fmt.Printf("You can run: ollama pull %s\n", modelName)
+	// Create Ollama client
+	client := ollama.NewClient(cfg.Ollama.Host, 10*time.Second)
+
+	// Check Ollama connectivity first
+	ctx := context.Background()
+	if err := client.Ping(ctx); err != nil {
+		fmt.Printf("Error: Cannot connect to Ollama at %s\n", cfg.Ollama.Host)
+		fmt.Printf("  %v\n", err)
+		fmt.Println()
+		fmt.Println("Make sure Ollama is running:")
+		fmt.Println("  ollama serve")
+		return
+	}
+
+	// Check if model already exists
+	hasModel, err := client.HasModel(ctx, modelName)
+	if err != nil {
+		fmt.Printf("Warning: Could not check existing models: %v\n", err)
+	} else if hasModel {
+		fmt.Printf("Model '%s' is already available.\n", modelName)
+		fmt.Println("Use 'spotigo models status' to see all models.")
+		return
+	}
+
+	// Track progress state
+	var lastStatus string
+	var lastPercent int
+	var lastUpdate time.Time
+
+	// Pull the model with progress callback
+	err = client.PullModel(ctx, modelName, func(progress ollama.PullProgress) {
+		// Show status changes
+		if progress.Status != lastStatus {
+			if lastStatus != "" {
+				fmt.Println() // New line after previous status
+			}
+			fmt.Printf("  %s", progress.Status)
+			lastStatus = progress.Status
+			lastPercent = 0
+		}
+
+		// Show download progress
+		if progress.Total > 0 {
+			percent := int(float64(progress.Completed) / float64(progress.Total) * 100)
+			now := time.Now()
+			// Update every 5%, on completion (100%), or at least every 500ms
+			shouldUpdate := percent != lastPercent && (percent%5 == 0 || percent == 100 || now.Sub(lastUpdate) > 500*time.Millisecond)
+			if shouldUpdate {
+				fmt.Printf("\r  %s: %d%% (%d/%d MB)",
+					progress.Status,
+					percent,
+					progress.Completed/1024/1024,
+					progress.Total/1024/1024)
+				lastPercent = percent
+				lastUpdate = now
+			}
+		}
+	})
+
+	fmt.Println() // Final newline
+
+	if err != nil {
+		fmt.Printf("\nError pulling model: %v\n", err)
+		fmt.Println()
+		fmt.Println("You can also try pulling directly with the Ollama CLI:")
+		fmt.Printf("  ollama pull %s\n", modelName)
+		return
+	}
+
 	fmt.Println()
-	fmt.Println("Note: Spotigo currently delegates model pulling to the ollama CLI for better progress reporting.")
-	fmt.Println("Future versions will implement direct API pulling.")
+	fmt.Printf("Model '%s' pulled successfully!\n", modelName)
+	fmt.Println("Use 'spotigo models status' to verify.")
 }

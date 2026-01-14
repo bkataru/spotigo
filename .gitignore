@@ -50,6 +50,7 @@ data/embeddings/*
 # Build output
 dist/
 build/
+bin/
 
 # Logs
 *.log

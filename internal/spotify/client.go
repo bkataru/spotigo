@@ -11,6 +11,8 @@ import (
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
+
+	"spotigo/internal/crypto"
 )
 
 // Scopes required for full library access
@@ -87,7 +89,7 @@ func (c *Client) HandleCallback(ctx context.Context, state string, r *http.Reque
 	return nil
 }
 
-// SaveToken saves the current token to a file
+// SaveToken saves the current token to a file (encrypted)
 func (c *Client) SaveToken(filename string) error {
 	if c.token == nil {
 		return fmt.Errorf("no token to save")
@@ -98,17 +100,50 @@ func (c *Client) SaveToken(filename string) error {
 		return fmt.Errorf("failed to marshal token: %w", err)
 	}
 
-	if err := os.WriteFile(filename, data, 0600); err != nil {
-		return fmt.Errorf("failed to write token file: %w", err)
+	// Try to encrypt the token
+	encryptor, err := crypto.NewTokenEncryptor()
+	if err != nil {
+		// Fall back to plaintext if encryption fails (with warning)
+		fmt.Printf("Warning: Could not encrypt token, saving in plaintext: %v\n", err)
+		if err := os.WriteFile(filename, data, 0600); err != nil {
+			return fmt.Errorf("failed to write token file: %w", err)
+		}
+		return nil
+	}
+
+	// Save encrypted token
+	if err := encryptor.SaveEncryptedFile(filename, data); err != nil {
+		return fmt.Errorf("failed to save encrypted token: %w", err)
 	}
 
 	return nil
 }
 
 func (c *Client) loadToken(filename string) (*oauth2.Token, error) {
-	data, err := os.ReadFile(filename)
-	if err != nil {
+	// Check if file exists
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return nil, err
+	}
+
+	var data []byte
+	var err error
+
+	// Check if the file is encrypted
+	if crypto.IsEncryptedFile(filename) {
+		encryptor, err := crypto.NewTokenEncryptor()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create encryptor: %w", err)
+		}
+		data, err = encryptor.LoadEncryptedFile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt token: %w", err)
+		}
+	} else {
+		// Legacy: load plaintext token
+		data, err = os.ReadFile(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var token oauth2.Token

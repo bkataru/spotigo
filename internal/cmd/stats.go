@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -11,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"spotigo/internal/config"
+	"spotigo/internal/jsonutil"
 )
 
 var statsCmd = &cobra.Command{
@@ -188,8 +187,8 @@ func runStatsTop(itemType string) {
 		}
 
 		for i, artist := range stats.TopArtists[:limit] {
-			bar := strings.Repeat("█", min(artist.Count, 20))
-			fmt.Printf("%3d. %-30s %3d %s\n", i+1, truncate(artist.Name, 30), artist.Count, bar)
+			bar := strings.Repeat("█", jsonutil.Min(artist.Count, 20))
+			fmt.Printf("%3d. %-30s %3d %s\n", i+1, jsonutil.Truncate(artist.Name, 30), artist.Count, bar)
 		}
 
 	case "tracks":
@@ -212,8 +211,8 @@ func runStatsTop(itemType string) {
 		}
 
 		for i, album := range albums[:limit] {
-			bar := strings.Repeat("█", min(album.Count, 20))
-			fmt.Printf("%3d. %-40s %3d %s\n", i+1, truncate(album.Name, 40), album.Count, bar)
+			bar := strings.Repeat("█", jsonutil.Min(album.Count, 20))
+			fmt.Printf("%3d. %-40s %3d %s\n", i+1, jsonutil.Truncate(album.Name, 40), album.Count, bar)
 		}
 
 	default:
@@ -264,7 +263,7 @@ func runStatsGenres() {
 			barLen = 1
 		}
 		bar := strings.Repeat("█", barLen)
-		fmt.Printf("%3d. %-25s %3d %s\n", i+1, truncate(genre.Name, 25), genre.Count, bar)
+		fmt.Printf("%3d. %-25s %3d %s\n", i+1, jsonutil.Truncate(genre.Name, 25), genre.Count, bar)
 	}
 
 	fmt.Println()
@@ -319,7 +318,7 @@ func runStatsPlaylists() {
 	}
 
 	for i, p := range stats.PlaylistStats[:limit] {
-		fmt.Printf("%3d. %-40s %4d tracks\n", i+1, truncate(p.Name, 40), p.TrackCount)
+		fmt.Printf("%3d. %-40s %4d tracks\n", i+1, jsonutil.Truncate(p.Name, 40), p.TrackCount)
 	}
 }
 
@@ -338,12 +337,12 @@ func computeLibraryStats(cfg *config.Config) (*LibraryStats, error) {
 
 		for _, track := range tracks {
 			// Get artist names
-			for _, artist := range getTrackArtists(track) {
+			for _, artist := range jsonutil.GetTrackArtists(track) {
 				artistCounts[artist]++
 			}
 
 			// Get album name
-			if album := getTrackAlbum(track); album != "" {
+			if album := jsonutil.GetTrackAlbum(track); album != "" {
 				albumSet[album] = true
 			}
 		}
@@ -367,7 +366,7 @@ func computeLibraryStats(cfg *config.Config) (*LibraryStats, error) {
 		genreCounts := make(map[string]int)
 
 		for _, artist := range artists {
-			genres := getArtistGenres(artist)
+			genres := jsonutil.GetArtistGenres(artist)
 			for _, genre := range genres {
 				genreCounts[genre]++
 			}
@@ -389,9 +388,9 @@ func computeLibraryStats(cfg *config.Config) (*LibraryStats, error) {
 
 		for _, playlist := range playlists {
 			ps := PlaylistStat{
-				Name:       getPlaylistName(playlist),
-				TrackCount: getPlaylistTrackCount(playlist),
-				Owner:      getPlaylistOwner(playlist),
+				Name:       jsonutil.GetPlaylistName(playlist),
+				TrackCount: jsonutil.GetPlaylistTrackCount(playlist),
+				Owner:      jsonutil.GetPlaylistOwner(playlist),
 			}
 			stats.PlaylistStats = append(stats.PlaylistStats, ps)
 		}
@@ -414,7 +413,7 @@ func computeTopAlbums(cfg *config.Config) ([]ArtistCount, error) {
 
 	albumCounts := make(map[string]int)
 	for _, track := range tracks {
-		if album := getTrackAlbum(track); album != "" {
+		if album := jsonutil.GetTrackAlbum(track); album != "" {
 			albumCounts[album]++
 		}
 	}
@@ -430,11 +429,11 @@ func computeTopAlbums(cfg *config.Config) ([]ArtistCount, error) {
 	return albums, nil
 }
 
-// Helper functions for loading and parsing JSON
+// Helper functions for loading raw JSON data
 
 func loadRawTracks(path string) ([]map[string]interface{}, error) {
 	var tracks []map[string]interface{}
-	if err := loadStatsJSONFile(path, &tracks); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &tracks); err != nil {
 		return nil, err
 	}
 	return tracks, nil
@@ -442,7 +441,7 @@ func loadRawTracks(path string) ([]map[string]interface{}, error) {
 
 func loadRawArtists(path string) ([]map[string]interface{}, error) {
 	var artists []map[string]interface{}
-	if err := loadStatsJSONFile(path, &artists); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &artists); err != nil {
 		return nil, err
 	}
 	return artists, nil
@@ -450,99 +449,8 @@ func loadRawArtists(path string) ([]map[string]interface{}, error) {
 
 func loadRawPlaylists(path string) ([]map[string]interface{}, error) {
 	var playlists []map[string]interface{}
-	if err := loadStatsJSONFile(path, &playlists); err != nil {
+	if err := jsonutil.LoadJSONFile(path, &playlists); err != nil {
 		return nil, err
 	}
 	return playlists, nil
-}
-
-func loadStatsJSONFile(path string, target interface{}) error {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, target)
-}
-
-func getTrackArtists(track map[string]interface{}) []string {
-	var names []string
-
-	// Handle spotify.SavedTrack format
-	trackData := track
-	if t, ok := track["track"].(map[string]interface{}); ok {
-		trackData = t
-	}
-
-	if artists, ok := trackData["artists"].([]interface{}); ok {
-		for _, a := range artists {
-			if artist, ok := a.(map[string]interface{}); ok {
-				if name, ok := artist["name"].(string); ok && name != "" {
-					names = append(names, name)
-				}
-			}
-		}
-	}
-	return names
-}
-
-func getTrackAlbum(track map[string]interface{}) string {
-	// Handle spotify.SavedTrack format
-	trackData := track
-	if t, ok := track["track"].(map[string]interface{}); ok {
-		trackData = t
-	}
-
-	if album, ok := trackData["album"].(map[string]interface{}); ok {
-		if name, ok := album["name"].(string); ok {
-			return name
-		}
-	}
-	return ""
-}
-
-func getArtistGenres(artist map[string]interface{}) []string {
-	var genres []string
-	if g, ok := artist["genres"].([]interface{}); ok {
-		for _, genre := range g {
-			if s, ok := genre.(string); ok {
-				genres = append(genres, s)
-			}
-		}
-	}
-	return genres
-}
-
-func getPlaylistName(playlist map[string]interface{}) string {
-	if name, ok := playlist["name"].(string); ok {
-		return name
-	}
-	return ""
-}
-
-func getPlaylistTrackCount(playlist map[string]interface{}) int {
-	if tracks, ok := playlist["tracks"].([]interface{}); ok {
-		return len(tracks)
-	}
-	return 0
-}
-
-func getPlaylistOwner(playlist map[string]interface{}) string {
-	if owner, ok := playlist["owner"].(string); ok {
-		return owner
-	}
-	return ""
-}
-
-func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen-3] + "..."
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

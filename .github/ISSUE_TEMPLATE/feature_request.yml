@@ -1,0 +1,118 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Spotigo
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out the form below to help us understand your idea.
+
+  - type: checkboxes
+    id: existing-issues
+    attributes:
+      label: Existing Issues
+      description: Please search existing issues and discussions
+      options:
+        - label: I have searched existing issues and this feature has not been requested
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: |
+        A clear and concise description of what the problem is.
+        Example: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: |
+        A clear and concise description of what you want to happen.
+        Include any specific implementation details if you have them.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: |
+        Other approaches you've thought about and why you prefer the proposed solution.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What area does this feature relate to?
+      options:
+        - Authentication / Spotify Integration
+        - Backup / Restore
+        - AI Chat / Conversations
+        - Search / Discovery
+        - Statistics / Analytics
+        - TUI / User Interface
+        - CLI / Commands
+        - Model Management
+        - Configuration
+        - Performance
+        - Documentation
+        - Developer Experience
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Would significantly improve my workflow
+        - Critical for my use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe a specific scenario where this feature would be useful
+      placeholder: |
+        Example: "When I'm organizing my playlists, I want to be able to..."
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: Mockups / Examples
+      description: If applicable, add mockups, screenshots, or examples of similar features
+      placeholder: |
+        You can paste images, ASCII art, or describe what the UI/output might look like.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, links, or information about the feature request
+      placeholder: |
+        - Related tools or projects that have similar features
+        - Links to documentation or specifications
+        - Any technical constraints to consider
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I would be willing to submit a PR to implement this feature
+        - label: I can help test this feature
+        - label: I can help write documentation for this feature

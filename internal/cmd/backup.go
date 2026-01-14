@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -288,15 +290,125 @@ func listBackups() {
 }
 
 func restoreBackup(args []string) {
+	cfg := GetConfig()
+	if cfg == nil {
+		fmt.Println("Error: Configuration not loaded")
+		return
+	}
+
+	store := storage.NewStore(cfg.Storage.DataDir, cfg.Storage.BackupDir)
+
+	// Get list of available backups
+	backups, err := store.ListBackups()
+	if err != nil {
+		fmt.Printf("Error listing backups: %v\n", err)
+		return
+	}
+
+	if len(backups) == 0 {
+		fmt.Println("No backups available to restore.")
+		fmt.Println("Run 'spotigo backup' to create one first.")
+		return
+	}
+
+	// Sort backups by timestamp (newest first)
+	sort.Slice(backups, func(i, j int) bool {
+		return backups[i].Timestamp.After(backups[j].Timestamp)
+	})
+
+	// Determine which backup to restore
+	var selectedBackup *storage.BackupMetadata
 	backupID := "latest"
 	if len(args) > 0 {
 		backupID = args[0]
 	}
 
-	fmt.Printf("Restoring from backup: %s\n", backupID)
-	fmt.Println("🚧 Restore functionality coming soon...")
-	fmt.Println("For now, you can manually restore from:")
-	fmt.Println("  ./data/backups/")
+	if backupID == "latest" {
+		selectedBackup = &backups[0]
+		fmt.Printf("Selected latest backup: %s\n", selectedBackup.ID)
+	} else {
+		// Find matching backup
+		for i := range backups {
+			if backups[i].ID == backupID || strings.Contains(backups[i].ID, backupID) {
+				selectedBackup = &backups[i]
+				break
+			}
+		}
+
+		if selectedBackup == nil {
+			fmt.Printf("Backup not found: %s\n", backupID)
+			fmt.Println("\nAvailable backups:")
+			for _, b := range backups {
+				fmt.Printf("  %s (%s)\n", b.ID, b.Timestamp.Format("2006-01-02 15:04:05"))
+			}
+			return
+		}
+	}
+
+	fmt.Printf("Restoring from backup: %s\n", selectedBackup.ID)
+	fmt.Printf("  Created: %s\n", selectedBackup.Timestamp.Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Size: %d bytes\n", selectedBackup.Size)
+	fmt.Println()
+
+	// Load the backup data
+	var backupData map[string]interface{}
+	if err := store.LoadBackupJSON(selectedBackup.ID, &backupData); err != nil {
+		fmt.Printf("Error loading backup: %v\n", err)
+		return
+	}
+
+	// Restore each data type
+	restored := 0
+
+	// Restore saved tracks
+	if tracks, ok := backupData["saved_tracks"]; ok {
+		if err := store.SaveJSON("saved_tracks.json", tracks); err != nil {
+			fmt.Printf("  Error restoring saved tracks: %v\n", err)
+		} else {
+			trackCount := countItems(tracks)
+			fmt.Printf("  Restored saved_tracks.json (%d tracks)\n", trackCount)
+			restored++
+		}
+	}
+
+	// Restore playlists
+	if playlists, ok := backupData["playlists"]; ok {
+		if err := store.SaveJSON("playlists.json", playlists); err != nil {
+			fmt.Printf("  Error restoring playlists: %v\n", err)
+		} else {
+			playlistCount := countItems(playlists)
+			fmt.Printf("  Restored playlists.json (%d playlists)\n", playlistCount)
+			restored++
+		}
+	}
+
+	// Restore followed artists
+	if artists, ok := backupData["followed_artists"]; ok {
+		if err := store.SaveJSON("followed_artists.json", artists); err != nil {
+			fmt.Printf("  Error restoring followed artists: %v\n", err)
+		} else {
+			artistCount := countItems(artists)
+			fmt.Printf("  Restored followed_artists.json (%d artists)\n", artistCount)
+			restored++
+		}
+	}
+
+	fmt.Println()
+	if restored > 0 {
+		fmt.Printf("Restore completed successfully! (%d data files restored)\n", restored)
+		fmt.Println("\nNote: You may want to rebuild the search index:")
+		fmt.Println("  spotigo search index")
+	} else {
+		fmt.Println("No data was restored. The backup may be empty or corrupted.")
+	}
+}
+
+// countItems returns the count of items in a slice interface
+func countItems(data interface{}) int {
+	if slice, ok := data.([]interface{}); ok {
+		return len(slice)
+	}
+	return 0
 }
 
 func showBackupStatus() {

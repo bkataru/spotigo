@@ -7,11 +7,19 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/spf13/cobra"
 
 	"spotigo/internal/config"
 	"spotigo/internal/ollama"
+)
+
+const (
+	// MaxInputLength is the maximum allowed length for user input
+	MaxInputLength = 4096
+	// MaxConversationHistory limits the number of messages kept in context
+	MaxConversationHistory = 50
 )
 
 var (
@@ -51,7 +59,8 @@ func runChat() {
 
 	cfg := GetConfig()
 	if cfg == nil {
-		fmt.Println("Warning: Configuration not loaded. Using defaults.")
+		fmt.Println("Error: Configuration not loaded. Cannot start chat.")
+		return
 	}
 
 	// Initialize Ollama client
@@ -129,6 +138,18 @@ func runChat() {
 			break
 		}
 
+		// Validate input
+		if err := validateChatInput(input); err != nil {
+			fmt.Printf("Invalid input: %v\n", err)
+			continue
+		}
+
+		// Trim conversation history if too long
+		if len(messages) > MaxConversationHistory {
+			// Keep system message and last N-1 messages
+			messages = append(messages[:1], messages[len(messages)-MaxConversationHistory+1:]...)
+		}
+
 		// Add user message to conversation
 		messages = append(messages, ollama.Message{
 			Role:    "user",
@@ -180,4 +201,30 @@ func runChat() {
 		fmt.Println(resp.Message.Content)
 		fmt.Println()
 	}
+}
+
+// validateChatInput validates user input for the chat
+func validateChatInput(input string) error {
+	// Check length
+	if len(input) > MaxInputLength {
+		return fmt.Errorf("input too long (max %d characters, got %d)", MaxInputLength, len(input))
+	}
+
+	// Check for valid UTF-8
+	if !utf8.ValidString(input) {
+		return fmt.Errorf("input contains invalid UTF-8 characters")
+	}
+
+	// Check for null bytes or other control characters that could cause issues
+	for i, r := range input {
+		if r == 0 {
+			return fmt.Errorf("input contains null byte at position %d", i)
+		}
+		// Allow common control characters (tab, newline) but reject others
+		if r < 32 && r != '\t' && r != '\n' && r != '\r' {
+			return fmt.Errorf("input contains invalid control character at position %d", i)
+		}
+	}
+
+	return nil
 }

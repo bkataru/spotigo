@@ -1,0 +1,155 @@
+# golangci-lint configuration for Spotigo
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - vendor
+    - data
+    - bin
+    - dist
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true
+
+linters:
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    
+    # Additional recommended linters
+    - bodyclose        # Check HTTP response body is closed
+    - contextcheck     # Check context propagation
+    - durationcheck    # Check for two durations multiplied together
+    - errname          # Check error naming conventions
+    - errorlint        # Find code that will cause problems with error wrapping
+    - exportloopref    # Check for pointers to enclosing loop variables
+    - gofmt            # Check code formatting
+    - goimports        # Check import formatting
+    - gosec            # Security checker
+    - misspell         # Find commonly misspelled English words
+    - nilerr           # Find returning nil after checking error
+    - noctx            # Find HTTP requests without context
+    - prealloc         # Find slice declarations that could be preallocated
+    - predeclared      # Find shadowing of predeclared identifiers
+    - revive           # Replacement for golint
+    - unconvert        # Remove unnecessary type conversions
+    - unparam          # Report unused function parameters
+    - wastedassign     # Find wasted assignment statements
+    
+  disable:
+    - exhaustive       # Too strict for enums
+    - funlen           # Function length varies by use case
+    - gochecknoglobals # We use globals for CLI flags
+    - gocognit         # Cognitive complexity varies
+    - goconst          # Sometimes repetition is clearer
+    - godox            # Allow TODOs
+    - gomnd            # Magic numbers are often clear in context
+    - lll              # Line length varies
+    - nestif           # Nesting depth varies
+    - nlreturn         # Too strict about blank lines
+    - wsl              # Too strict about whitespace
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    exclude-functions:
+      - (io.Closer).Close
+      - (net/http.ResponseWriter).Write
+      
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment  # Too strict about struct field ordering
+      
+  gofmt:
+    simplify: true
+    
+  goimports:
+    local-prefixes: spotigo
+    
+  gosec:
+    excludes:
+      - G104  # Audit errors not checked (we handle this with errcheck)
+      - G304  # File path provided as taint input (we validate paths)
+      
+  misspell:
+    locale: US
+    
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unreachable-code
+      
+  unparam:
+    check-exported: false
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+        - unparam
+        
+    # Exclude shadow checking on test files
+    - path: _test\.go
+      text: "shadow"
+      
+    # Allow fmt.Print in cmd package (CLI output)
+    - path: internal/cmd/
+      linters:
+        - forbidigo
+        
+    # Ignore long lines in generated files
+    - path: ".*\\.gen\\.go"
+      linters:
+        - lll
+        
+  exclude-use-default: false
+  max-issues-per-linter: 50
+  max-same-issues: 10
+  new: false
+
+severity:
+  default-severity: warning
+  rules:
+    - linters:
+        - gosec
+      severity: error
+    - linters:
+        - errcheck
+      severity: error
