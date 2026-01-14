@@ -16,6 +16,42 @@ cd examples
 go run basic_usage.go
 ```
 
+### 2. Backup System (`backup_example.go`)
+Shows how to use Spotigo's backup functionality:
+- Configuration loading
+- Spotify client setup
+- Storage management
+- Backup data structures
+
+```bash
+cd examples
+go run backup_example.go
+```
+
+### 3. RAG (Retrieval-Augmented Generation) (`rag_example.go`)
+Demonstrates semantic search and embedding capabilities:
+- Document creation and management
+- Vector store operations
+- Semantic search queries
+- Persistence and statistics
+
+```bash
+cd examples
+go run rag_example.go
+```
+
+### 4. Chat Interface (`chat_example.go`)
+Illustrates the chat functionality with local LLMs:
+- Ollama client configuration
+- Conversation management
+- Context handling
+- Model tier selection
+
+```bash
+cd examples
+go run chat_example.go
+```
+
 ## Library Components
 
 ### Spotify Client
@@ -67,7 +103,7 @@ stats := analyzeLibrary(tracks)
 
 // Generate insights with AI
 response, _ := ollamaClient.Chat(ctx, ollama.ChatRequest{
-    Model: "granite4:1b",
+    Model: "granite4:3b",
     Messages: []ollama.Message{
         {Role: "system", Content: "You are a music analyst."},
         {Role: "user", Content: fmt.Sprintf("Analyze these stats: %v", stats)},
@@ -83,8 +119,8 @@ For examples to run, you'll need:
 2. **Ollama** (for AI features)
    ```bash
    ollama serve
-   ollama pull nomic-embed-text-v2-moe
-   ollama pull granite4:1b
+   ollama pull nomic-embed-text
+   ollama pull granite4:3b
    ```
 3. **Spotify Developer Credentials**
    - Create app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)

@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Go version requirements from 1.23+ to 1.24+ across all documentation
 - Updated Go version badge in README to reflect 1.24+ requirement
 
-## [2.0.0] - 2024-01-14
+## [2.0.0] - 2026-01-14
 
 ### Added
 - **Complete OAuth2 Authentication System**
@@ -113,7 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture redesigned with clean package separation
 - Configuration system with YAML files and environment variable support
 
-## [1.0.0] - 2024-01-13
+## [1.0.0] - 2026-01-13
 
 ### Added
 - Initial commit with basic project structure
@@ -125,8 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 2.0.0 | 2024-01-14 | Complete AI-powered platform with OAuth, backup, chat, search, and TUI |
-| 1.0.0 | 2024-01-13 | Initial project structure |
+| 2.0.0 | 2026-01-14 | Complete AI-powered platform with OAuth, backup, chat, search, and TUI |
+| 1.0.0 | 2026-01-13 | Initial project structure |
 
 [Unreleased]: https://github.com/bkataru/spotigo/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/bkataru/spotigo/compare/v1.0.0...v2.0.0

@@ -1,6 +1,6 @@
-# Contributing to Spotigo Go Library
+# Contributing to Spotigo
 
-Thank you for your interest in contributing to the Spotigo Go library! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Spotigo! This document provides guidelines and information for contributors to both the Go library and CLI application.
 
 ## Table of Contents
 
@@ -282,7 +282,7 @@ spotigo/
 │   ├── rag/             # RAG vector store
 │   ├── spotify/         # Spotify API client
 │   └── storage/         # Local file storage
-├── cmd/spotigo/         # CLI example application
+├── cmd/spotigo/         # CLI application
 └── .github/             # GitHub Actions
 ```
 

@@ -1,4 +1,4 @@
-# Spotigo Go Library
+# Spotigo
 
 [![CI](https://github.com/bkataru/spotigo/actions/workflows/ci.yml/badge.svg)](https://github.com/bkataru/spotigo/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://go.dev/)
@@ -6,9 +6,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/bkataru/spotigo)](https://goreportcard.com/report/github.com/bkataru/spotigo)
 [![Go Reference](https://pkg.go.dev/badge/github.com/bkataru/spotigo.svg)](https://pkg.go.dev/github.com/bkataru/spotigo)
 
-**A Go library for AI-powered Spotify library management with local RAG capabilities.**
+**A Go library and CLI application for AI-powered Spotify library management with local RAG capabilities.**
 
-Spotigo provides a comprehensive Go library for interacting with Spotify APIs, managing local music libraries, and implementing RAG (Retrieval-Augmented Generation) functionality with Ollama for AI-powered music analysis.
+Spotigo provides both a comprehensive Go library for developers and a powerful command-line interface for end users to interact with Spotify APIs, manage local music libraries, and implement RAG (Retrieval-Augmented Generation) functionality with Ollama for AI-powered music analysis.
 
 ## Features
 
@@ -374,3 +374,107 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Ollama](https://ollama.ai/) - Local LLM inference
 - [Spotify Web API](https://developer.spotify.com/) - Music data
 - [zmb3/spotify](https://github.com/zmb3/spotify) - Go Spotify client
+
+## CLI Usage
+
+Spotigo can be used as a standalone CLI application for backing up your Spotify library and performing AI-powered analysis.
+
+### Installation
+
+To install the CLI, you can either:
+
+1. Download a pre-built binary from the [releases page](https://github.com/bkataru/spotigo/releases)
+2. Build from source:
+   ```bash
+   git clone https://github.com/bkataru/spotigo.git
+   cd spotigo
+   go build -o spotigo ./cmd/spotigo
+   ```
+
+### Getting Started
+
+1. First, authenticate with Spotify:
+   ```bash
+   spotigo auth
+   ```
+
+2. Backup your Spotify library:
+   ```bash
+   spotigo backup
+   ```
+
+3. Build search index for semantic search (requires Ollama):
+   ```bash
+   spotigo search index
+   ```
+
+4. Start chatting with your music library:
+   ```bash
+   spotigo chat
+   ```
+
+### Available Commands
+
+- `spotigo backup` - Backup your Spotify library
+  - `spotigo backup list` - List available backups
+  - `spotigo backup restore [backup-id]` - Restore from a backup
+  - `spotigo backup status` - Show backup status and schedule
+
+- `spotigo chat` - Start an AI chat session about your music
+  - Uses local LLMs via Ollama for privacy-first conversations
+
+- `spotigo search [query]` - Semantic search across your music library
+  - `spotigo search index` - Build or rebuild the search index
+  - `spotigo search status` - Show search index status
+
+- `spotigo stats` - View listening statistics and insights
+  - `spotigo stats top` - Show top tracks and artists
+  - `spotigo stats genres` - Analyze genre distribution
+  - `spotigo stats playlists` - Playlist analysis
+
+- `spotigo auth` - Manage Spotify authentication
+  - `spotigo auth status` - Check authentication status
+  - `spotigo auth logout` - Remove stored credentials
+
+- `spotigo models` - Manage Ollama models
+  - `spotigo models list` - List recommended models
+  - `spotigo models status` - Show installed models
+  - `spotigo models pull` - Pull recommended models
+
+### Configuration
+
+The CLI uses a configuration file (default: `$HOME/.spotigo.yaml`) to manage settings:
+
+```yaml
+spotify:
+  client_id: "your_spotify_client_id"
+  client_secret: "your_spotify_client_secret"
+  redirect_uri: "http://localhost:8888/callback"
+
+ollama:
+  host: "http://localhost:11434"
+  timeout: 30
+
+storage:
+  data_dir: "./data"
+  backup_dir: "./data/backups"
+  embeddings_dir: "./data/embeddings"
+
+backup:
+  schedule: "daily"
+  retain_days: 30
+```
+
+You can specify a custom config file with the `--config` flag:
+```bash
+spotigo --config /path/to/your/config.yaml backup
+```
+
+### TUI Mode
+
+Launch Spotigo in Terminal User Interface mode:
+```bash
+spotigo --tui
+```
+
+This provides an interactive menu-driven interface for all features.

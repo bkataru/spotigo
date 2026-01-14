@@ -100,7 +100,7 @@ body:
     attributes:
       label: Go Version
       description: "Run: go version"
-      placeholder: "e.g., go1.23.0"
+      placeholder: "e.g., go1.24.0"
 
   - type: input
     id: ollama-version

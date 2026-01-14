@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-spotigo
+spotigo.exe
 
 # Test binary, built with `go test -c`
 *.test

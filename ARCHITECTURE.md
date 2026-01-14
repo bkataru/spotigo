@@ -389,7 +389,7 @@ Allows users to balance performance vs. quality based on hardware capabilities.
 ## Technology Stack
 
 ### Core
-- **Language**: Go 1.23+
+- **Language**: Go 1.24+
 - **Build Tool**: Make, Go modules
 
 ### Dependencies
