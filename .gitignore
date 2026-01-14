@@ -41,6 +41,7 @@ spotigo.yaml
 .env.local
 
 # Data directories (keep structure, ignore content)
+data/*.json
 data/backups/*
 data/embeddings/*
 !data/.gitkeep

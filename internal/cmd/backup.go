@@ -1,20 +1,32 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/zmb3/spotify/v2"
 
 	"github.com/bkataru/spotigo/internal/config"
 	"github.com/bkataru/spotigo/internal/ollama"
 	"github.com/bkataru/spotigo/internal/rag"
-	"github.com/bkataru/spotigo/internal/spotify"
+	spotifyclient "github.com/bkataru/spotigo/internal/spotify"
 	"github.com/bkataru/spotigo/internal/storage"
+)
+
+const (
+	// maxConcurrentPlaylistFetches limits concurrent playlist track fetches
+	maxConcurrentPlaylistFetches = 5
+	// writeBufferSize is the buffer size for file writes (64KB)
+	writeBufferSize = 64 * 1024
 )
 
 var (
@@ -78,7 +90,24 @@ var backupStatusCmd = &cobra.Command{
 	},
 }
 
+// backupResult holds the result of a concurrent backup operation
+type backupResult struct {
+	name string
+	data interface{}
+	err  error
+}
+
+// playlistData holds playlist information with tracks
+type playlistData struct {
+	ID     spotify.ID  `json:"id"`
+	Name   string      `json:"name"`
+	Owner  string      `json:"owner"`
+	Public bool        `json:"public"`
+	Tracks interface{} `json:"tracks"`
+}
+
 func runBackup() {
+	startTime := time.Now()
 	fmt.Println("Starting Spotify library backup...")
 	fmt.Printf("  Type: %s\n", backupType)
 	fmt.Printf("  Full: %v\n", backupFull)
@@ -95,14 +124,14 @@ func runBackup() {
 	}
 
 	// Create Spotify client
-	spotifyCfg := spotify.Config{
+	spotifyCfg := spotifyclient.Config{
 		ClientID:     cfg.Spotify.ClientID,
 		ClientSecret: cfg.Spotify.ClientSecret,
 		RedirectURI:  cfg.Spotify.RedirectURI,
 		TokenFile:    cfg.Spotify.TokenFile,
 	}
 
-	client, err := spotify.NewClient(spotifyCfg)
+	client, err := spotifyclient.NewClient(spotifyCfg)
 	if err != nil {
 		fmt.Printf("Error creating Spotify client: %v\n", err)
 		return
@@ -118,12 +147,13 @@ func runBackup() {
 	store := storage.NewStore(cfg.Storage.DataDir, cfg.Storage.BackupDir)
 
 	// Perform backup
-	if err := performBackup(client, store, backupType); err != nil {
+	if err := performBackupConcurrent(client, store, backupType); err != nil {
 		fmt.Printf("Backup failed: %v\n", err)
 		return
 	}
 
-	fmt.Println("Backup completed successfully!")
+	elapsed := time.Since(startTime)
+	fmt.Printf("\nBackup completed successfully in %s!\n", elapsed.Round(time.Millisecond))
 
 	// Build search index if requested
 	if backupIndex {
@@ -138,117 +168,325 @@ func runBackup() {
 	}
 }
 
-func performBackup(client *spotify.Client, store *storage.Store, backupType string) error {
+// performBackupConcurrent performs backup operations concurrently
+func performBackupConcurrent(client *spotifyclient.Client, store *storage.Store, backupType string) error {
 	ctx := context.Background()
 
-	// Create backup data structure
+	// Determine which backups to run
+	runTracks := backupType == "all" || backupType == "tracks"
+	runPlaylists := backupType == "all" || backupType == "playlists"
+	runArtists := backupType == "all" || backupType == "artists"
+
+	// Channel for collecting results
+	results := make(chan backupResult, 3)
+	var wg sync.WaitGroup
+
+	// Launch concurrent fetches
+	if runTracks {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fmt.Println("  🎵 Fetching saved tracks...")
+			tracks, err := client.GetSavedTracks(ctx)
+			if err == nil {
+				fmt.Printf("    Found %d saved tracks\n", len(tracks))
+			}
+			results <- backupResult{name: "saved_tracks", data: tracks, err: err}
+		}()
+	}
+
+	if runArtists {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fmt.Println("  🎤 Fetching followed artists...")
+			artists, err := client.GetFollowedArtists(ctx)
+			if err == nil {
+				fmt.Printf("    Found %d followed artists\n", len(artists))
+			}
+			results <- backupResult{name: "followed_artists", data: artists, err: err}
+		}()
+	}
+
+	if runPlaylists {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fmt.Println("  📋 Fetching playlists...")
+			playlistData, err := fetchPlaylistsConcurrent(ctx, client)
+			results <- backupResult{name: "playlists", data: playlistData, err: err}
+		}()
+	}
+
+	// Close results channel when all fetches complete
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results
 	backupData := make(map[string]interface{})
+	var errors []error
 
-	if backupType == "all" || backupType == "tracks" {
-		if err := backupTracks(ctx, client, store, backupData); err != nil {
-			return fmt.Errorf("failed to backup tracks: %w", err)
+	for result := range results {
+		if result.err != nil {
+			errors = append(errors, fmt.Errorf("%s: %w", result.name, result.err))
+			continue
 		}
+		backupData[result.name] = result.data
 	}
 
-	if backupType == "all" || backupType == "playlists" {
-		if err := backupPlaylists(ctx, client, store, backupData); err != nil {
-			return fmt.Errorf("failed to backup playlists: %w", err)
-		}
+	// Check for critical errors
+	if len(errors) > 0 && len(backupData) == 0 {
+		return fmt.Errorf("all backup operations failed: %v", errors)
 	}
 
-	if backupType == "all" || backupType == "artists" {
-		if err := backupArtists(ctx, client, store, backupData); err != nil {
-			return fmt.Errorf("failed to backup artists: %w", err)
-		}
+	// Report any partial failures
+	for _, err := range errors {
+		fmt.Printf("  Warning: %v\n", err)
 	}
 
-	// Save backup
-	metadata, err := store.CreateBackup(backupType, backupData)
-	if err != nil {
-		return fmt.Errorf("failed to save backup: %w", err)
-	}
-
-	fmt.Printf("  Saved backup: %s\n", metadata.ID)
-	fmt.Printf("  Size: %d bytes\n", metadata.Size)
-
-	return nil
-}
-
-func backupTracks(ctx context.Context, client *spotify.Client, store *storage.Store, backupData map[string]interface{}) error {
-	fmt.Println("  🎵 Backing up saved tracks...")
-
-	tracks, err := client.GetSavedTracks(ctx)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("    Found %d saved tracks\n", len(tracks))
-	backupData["saved_tracks"] = tracks
-
-	// Also save as separate file for easy access
-	if err := store.SaveJSON("saved_tracks.json", tracks); err != nil {
-		return fmt.Errorf("failed to save tracks: %w", err)
+	// Write files concurrently
+	fmt.Println("\n  💾 Saving backup files...")
+	if err := saveBackupFilesConcurrent(store, backupData, backupType); err != nil {
+		return fmt.Errorf("failed to save backup files: %w", err)
 	}
 
 	return nil
 }
 
-func backupPlaylists(ctx context.Context, client *spotify.Client, store *storage.Store, backupData map[string]interface{}) error {
-	fmt.Println("  📋 Backing up playlists...")
-
+// fetchPlaylistsConcurrent fetches all playlists and their tracks concurrently
+func fetchPlaylistsConcurrent(ctx context.Context, client *spotifyclient.Client) ([]playlistData, error) {
+	// First, get all playlists
 	playlists, err := client.GetPlaylists(ctx)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to get playlists: %w", err)
 	}
 
 	fmt.Printf("    Found %d playlists\n", len(playlists))
 
-	// Get tracks for each playlist
-	playlistData := make([]map[string]interface{}, len(playlists))
-	for i, playlist := range playlists {
-		items, err := client.GetPlaylistTracks(ctx, playlist.ID)
-		if err != nil {
-			return fmt.Errorf("failed to get tracks for playlist %s: %w", playlist.Name, err)
-		}
-
-		playlistData[i] = map[string]interface{}{
-			"id":     playlist.ID,
-			"name":   playlist.Name,
-			"owner":  playlist.Owner.DisplayName,
-			"public": playlist.IsPublic,
-			"tracks": items,
-		}
-
-		fmt.Printf("      %s: %d tracks\n", playlist.Name, len(items))
+	if len(playlists) == 0 {
+		return []playlistData{}, nil
 	}
 
-	backupData["playlists"] = playlistData
+	// Create worker pool for fetching playlist tracks
+	type playlistJob struct {
+		index    int
+		playlist spotify.SimplePlaylist
+	}
 
-	// Save as separate file
-	if err := store.SaveJSON("playlists.json", playlistData); err != nil {
-		return fmt.Errorf("failed to save playlists: %w", err)
+	type playlistResult struct {
+		index int
+		data  playlistData
+		err   error
+	}
+
+	jobs := make(chan playlistJob, len(playlists))
+	results := make(chan playlistResult, len(playlists))
+
+	// Start workers
+	numWorkers := maxConcurrentPlaylistFetches
+	if len(playlists) < numWorkers {
+		numWorkers = len(playlists)
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for job := range jobs {
+				items, err := client.GetPlaylistTracks(ctx, job.playlist.ID)
+				if err != nil {
+					results <- playlistResult{
+						index: job.index,
+						err:   fmt.Errorf("playlist %s: %w", job.playlist.Name, err),
+					}
+					continue
+				}
+
+				results <- playlistResult{
+					index: job.index,
+					data: playlistData{
+						ID:     job.playlist.ID,
+						Name:   job.playlist.Name,
+						Owner:  job.playlist.Owner.DisplayName,
+						Public: job.playlist.IsPublic,
+						Tracks: items,
+					},
+				}
+			}
+		}()
+	}
+
+	// Send jobs
+	for i, playlist := range playlists {
+		jobs <- playlistJob{index: i, playlist: playlist}
+	}
+	close(jobs)
+
+	// Wait for workers and close results
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results maintaining order
+	playlistDataSlice := make([]playlistData, len(playlists))
+	var errors []error
+	completed := 0
+
+	for result := range results {
+		completed++
+		if result.err != nil {
+			errors = append(errors, result.err)
+			continue
+		}
+		playlistDataSlice[result.index] = result.data
+		fmt.Printf("      %s: %d tracks\n", result.data.Name, countPlaylistTracks(result.data.Tracks))
+	}
+
+	// Filter out empty entries (from errors)
+	var validPlaylists []playlistData
+	for _, pd := range playlistDataSlice {
+		if pd.Name != "" {
+			validPlaylists = append(validPlaylists, pd)
+		}
+	}
+
+	if len(errors) > 0 {
+		fmt.Printf("    Warning: %d playlist(s) failed to fetch\n", len(errors))
+	}
+
+	return validPlaylists, nil
+}
+
+// countPlaylistTracks counts tracks in a playlist
+func countPlaylistTracks(tracks interface{}) int {
+	if items, ok := tracks.([]spotify.PlaylistItem); ok {
+		return len(items)
+	}
+	return 0
+}
+
+// saveBackupFilesConcurrent saves all backup files concurrently with buffered I/O
+func saveBackupFilesConcurrent(store *storage.Store, backupData map[string]interface{}, backupType string) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(backupData)+1)
+
+	// Save individual data files concurrently
+	for name, data := range backupData {
+		wg.Add(1)
+		go func(filename string, content interface{}) {
+			defer wg.Done()
+			if err := saveJSONBuffered(filepath.Join(store.GetDataDir(), filename+".json"), content); err != nil {
+				errChan <- fmt.Errorf("failed to save %s: %w", filename, err)
+			}
+		}(name, data)
+	}
+
+	// Save combined backup file
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		metadata, err := createBackupBuffered(store, backupType, backupData)
+		if err != nil {
+			errChan <- fmt.Errorf("failed to create backup: %w", err)
+			return
+		}
+		fmt.Printf("    Saved backup: %s (%d bytes)\n", metadata.ID, metadata.Size)
+	}()
+
+	// Wait for all writes to complete
+	wg.Wait()
+	close(errChan)
+
+	// Collect errors
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("save errors: %v", errors)
 	}
 
 	return nil
 }
 
-func backupArtists(ctx context.Context, client *spotify.Client, store *storage.Store, backupData map[string]interface{}) error {
-	fmt.Println("  🎤 Backing up followed artists...")
-
-	artists, err := client.GetFollowedArtists(ctx)
-	if err != nil {
-		return err
+// saveJSONBuffered saves JSON data with buffered I/O for better performance
+func saveJSONBuffered(path string, data interface{}) error {
+	// Ensure parent directory exists
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	fmt.Printf("    Found %d followed artists\n", len(artists))
-	backupData["followed_artists"] = artists
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
 
-	// Also save as separate file
-	if err := store.SaveJSON("followed_artists.json", artists); err != nil {
-		return fmt.Errorf("failed to save artists: %w", err)
+	// Use buffered writer for better I/O performance
+	writer := bufio.NewWriterSize(file, writeBufferSize)
+
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(data); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
+
+	// Flush the buffer
+	if err := writer.Flush(); err != nil {
+		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
 	return nil
+}
+
+// createBackupBuffered creates a backup file with buffered I/O
+func createBackupBuffered(store *storage.Store, backupType string, data interface{}) (*storage.BackupMetadata, error) {
+	timestamp := time.Now()
+	timestampStr := timestamp.Format("20060102-150405")
+	filename := fmt.Sprintf("%s-%s.json", backupType, timestampStr)
+	path := filepath.Join(store.GetBackupDir(), filename)
+
+	// Ensure backup directory exists
+	if err := os.MkdirAll(store.GetBackupDir(), 0750); err != nil {
+		return nil, fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create backup file: %w", err)
+	}
+	defer file.Close()
+
+	// Use buffered writer
+	writer := bufio.NewWriterSize(file, writeBufferSize)
+
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(data); err != nil {
+		return nil, fmt.Errorf("failed to encode backup: %w", err)
+	}
+
+	if err := writer.Flush(); err != nil {
+		return nil, fmt.Errorf("failed to flush buffer: %w", err)
+	}
+
+	// Get file size
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat backup file: %w", err)
+	}
+
+	return &storage.BackupMetadata{
+		ID:        filename,
+		Timestamp: timestamp,
+		Type:      backupType,
+		Size:      info.Size(),
+	}, nil
 }
 
 func listBackups() {
@@ -353,40 +591,48 @@ func restoreBackup(args []string) {
 		return
 	}
 
-	// Restore each data type
+	// Restore files concurrently
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	restored := 0
+	restoreErrors := make([]string, 0)
 
-	// Restore saved tracks
+	restoreFile := func(key, filename string, data interface{}) {
+		defer wg.Done()
+		if err := store.SaveJSON(filename, data); err != nil {
+			mu.Lock()
+			restoreErrors = append(restoreErrors, fmt.Sprintf("%s: %v", key, err))
+			mu.Unlock()
+			return
+		}
+		count := countItems(data)
+		mu.Lock()
+		restored++
+		fmt.Printf("  Restored %s (%d items)\n", filename, count)
+		mu.Unlock()
+	}
+
+	// Restore each data type concurrently
 	if tracks, ok := backupData["saved_tracks"]; ok {
-		if err := store.SaveJSON("saved_tracks.json", tracks); err != nil {
-			fmt.Printf("  Error restoring saved tracks: %v\n", err)
-		} else {
-			trackCount := countItems(tracks)
-			fmt.Printf("  Restored saved_tracks.json (%d tracks)\n", trackCount)
-			restored++
-		}
+		wg.Add(1)
+		go restoreFile("saved_tracks", "saved_tracks.json", tracks)
 	}
 
-	// Restore playlists
 	if playlists, ok := backupData["playlists"]; ok {
-		if err := store.SaveJSON("playlists.json", playlists); err != nil {
-			fmt.Printf("  Error restoring playlists: %v\n", err)
-		} else {
-			playlistCount := countItems(playlists)
-			fmt.Printf("  Restored playlists.json (%d playlists)\n", playlistCount)
-			restored++
-		}
+		wg.Add(1)
+		go restoreFile("playlists", "playlists.json", playlists)
 	}
 
-	// Restore followed artists
 	if artists, ok := backupData["followed_artists"]; ok {
-		if err := store.SaveJSON("followed_artists.json", artists); err != nil {
-			fmt.Printf("  Error restoring followed artists: %v\n", err)
-		} else {
-			artistCount := countItems(artists)
-			fmt.Printf("  Restored followed_artists.json (%d artists)\n", artistCount)
-			restored++
-		}
+		wg.Add(1)
+		go restoreFile("followed_artists", "followed_artists.json", artists)
+	}
+
+	wg.Wait()
+
+	// Report errors
+	for _, errMsg := range restoreErrors {
+		fmt.Printf("  Error: %s\n", errMsg)
 	}
 
 	fmt.Println()
