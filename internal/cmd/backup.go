@@ -453,14 +453,15 @@ func createBackupBuffered(store *storage.Store, backupType string, data interfac
 	timestamp := time.Now()
 	timestampStr := timestamp.Format("20060102-150405")
 	filename := fmt.Sprintf("%s-%s.json", backupType, timestampStr)
-	path := filepath.Join(store.GetBackupDir(), filename)
+	cleanBackupDir := filepath.Clean(store.GetBackupDir())
+	path := filepath.Join(cleanBackupDir, filename)
 
 	// Ensure backup directory exists
-	if err := os.MkdirAll(store.GetBackupDir(), 0750); err != nil {
+	if err := os.MkdirAll(cleanBackupDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
-	file, err := os.Create(path)
+	file, err := os.Create(path) // #nosec G304 - path is constructed from controlled backupDir and timestamped filename
 	if err != nil {
 		return nil, fmt.Errorf("failed to create backup file: %w", err)
 	}

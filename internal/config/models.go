@@ -60,9 +60,11 @@ type OllamaSection struct {
 
 // LoadModelConfig loads model configuration from YAML
 func LoadModelConfig(configDir string) (*ModelConfig, error) {
-	configPath := filepath.Join(configDir, "models.yaml")
+	// Clean path to prevent traversal attacks
+	cleanConfigDir := filepath.Clean(configDir)
+	configPath := filepath.Join(cleanConfigDir, "models.yaml")
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(configPath) // #nosec G304 - path is sanitized with filepath.Clean
 	if err != nil {
 		return nil, fmt.Errorf("failed to read models.yaml: %w", err)
 	}

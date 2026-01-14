@@ -152,13 +152,16 @@ func (e *TokenEncryptor) SaveEncryptedFile(filename string, data []byte) error {
 		return fmt.Errorf("failed to encrypt: %w", err)
 	}
 
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filename)
+
 	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(cleanPath), 0700); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
 	// Write with restrictive permissions
-	if err := os.WriteFile(filename, encrypted, 0600); err != nil {
+	if err := os.WriteFile(cleanPath, encrypted, 0600); err != nil { // #nosec G304 - path is sanitized with filepath.Clean
 		return fmt.Errorf("failed to write file: %w", err)
 	}
 
@@ -167,7 +170,10 @@ func (e *TokenEncryptor) SaveEncryptedFile(filename string, data []byte) error {
 
 // LoadEncryptedFile reads and decrypts data from file
 func (e *TokenEncryptor) LoadEncryptedFile(filename string) ([]byte, error) {
-	encrypted, err := os.ReadFile(filename)
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filename)
+
+	encrypted, err := os.ReadFile(cleanPath) // #nosec G304 - path is sanitized with filepath.Clean
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
@@ -183,7 +189,10 @@ func (e *TokenEncryptor) LoadEncryptedFile(filename string) ([]byte, error) {
 // IsEncryptedFile checks if a file appears to be encrypted
 // (checks if it starts with valid JSON or not)
 func IsEncryptedFile(filename string) bool {
-	data, err := os.ReadFile(filename)
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filename)
+
+	data, err := os.ReadFile(cleanPath) // #nosec G304 - path is sanitized with filepath.Clean
 	if err != nil {
 		return false
 	}

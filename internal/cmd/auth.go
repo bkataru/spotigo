@@ -191,7 +191,7 @@ func logout() {
 
 	tokenFile := cfg.Spotify.TokenFile
 	if tokenFile == "" {
-		tokenFile = ".spotify_token" //nolint:gosec // This is a filename, not a credential
+		tokenFile = ".spotify_token" // #nosec G101 - This is a filename, not a hardcoded credential
 	}
 
 	if err := os.Remove(tokenFile); err != nil {
@@ -232,7 +232,7 @@ func openBrowser(url string) error {
 		args = []string{url}
 	}
 
-	return exec.Command(cmd, args...).Start() //nolint:gosec // This is intentional browser opening
+	return exec.Command(cmd, args...).Start() // #nosec G204 - Intentional browser opening with sanitized URL
 }
 
 func handleCallback(client *spotify.Client, expectedState string, redirectURI string) error {

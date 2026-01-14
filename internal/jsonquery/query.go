@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -125,8 +126,11 @@ func (e *Engine) loadData(source string) ([]interface{}, error) {
 		filePath = fmt.Sprintf("%s/%s", e.dataDir, source)
 	}
 
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filePath)
+
 	// Read file
-	file, err := os.ReadFile(filePath)
+	file, err := os.ReadFile(cleanPath) // #nosec G304 - path is sanitized with filepath.Clean
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}

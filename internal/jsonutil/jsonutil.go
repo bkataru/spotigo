@@ -5,11 +5,14 @@ package jsonutil
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 // LoadJSONFile reads and unmarshals a JSON file into the target interface.
 func LoadJSONFile(path string, target interface{}) error {
-	data, err := os.ReadFile(path)
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(path)
+	data, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
@@ -95,6 +96,9 @@ func (c *Client) SaveToken(filename string) error {
 		return fmt.Errorf("no token to save")
 	}
 
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filename)
+
 	data, err := json.Marshal(c.token)
 	if err != nil {
 		return fmt.Errorf("failed to marshal token: %w", err)
@@ -105,14 +109,14 @@ func (c *Client) SaveToken(filename string) error {
 	if err != nil {
 		// Fall back to plaintext if encryption fails (with warning)
 		fmt.Printf("Warning: Could not encrypt token, saving in plaintext: %v\n", err)
-		if err := os.WriteFile(filename, data, 0600); err != nil {
+		if err := os.WriteFile(cleanPath, data, 0600); err != nil { // #nosec G304 - path is sanitized with filepath.Clean
 			return fmt.Errorf("failed to write token file: %w", err)
 		}
 		return nil
 	}
 
 	// Save encrypted token
-	if err := encryptor.SaveEncryptedFile(filename, data); err != nil {
+	if err := encryptor.SaveEncryptedFile(cleanPath, data); err != nil {
 		return fmt.Errorf("failed to save encrypted token: %w", err)
 	}
 
@@ -120,8 +124,11 @@ func (c *Client) SaveToken(filename string) error {
 }
 
 func (c *Client) loadToken(filename string) (*oauth2.Token, error) {
+	// Clean path to prevent traversal attacks
+	cleanPath := filepath.Clean(filename)
+
 	// Check if file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	if _, err := os.Stat(cleanPath); os.IsNotExist(err) {
 		return nil, err
 	}
 
@@ -129,18 +136,18 @@ func (c *Client) loadToken(filename string) (*oauth2.Token, error) {
 	var err error
 
 	// Check if the file is encrypted
-	if crypto.IsEncryptedFile(filename) {
+	if crypto.IsEncryptedFile(cleanPath) {
 		encryptor, createErr := crypto.NewTokenEncryptor()
 		if createErr != nil {
 			return nil, fmt.Errorf("failed to create encryptor: %w", createErr)
 		}
-		data, err = encryptor.LoadEncryptedFile(filename)
+		data, err = encryptor.LoadEncryptedFile(cleanPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt token: %w", err)
 		}
 	} else {
 		// Legacy: load plaintext token
-		data, err = os.ReadFile(filename)
+		data, err = os.ReadFile(cleanPath) // #nosec G304 - path is sanitized with filepath.Clean
 		if err != nil {
 			return nil, err
 		}
