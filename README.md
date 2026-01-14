@@ -63,7 +63,7 @@ func main() {
     spotifyClient, err := spotify.NewClient(spotify.Config{
         ClientID:     "your_client_id",
         ClientSecret: "your_client_secret",
-        RedirectURI:  "http://localhost:8888/callback",
+        RedirectURI:  "http://127.0.0.1:8888/callback",
     })
     if err != nil {
         log.Fatal(err)
@@ -126,7 +126,7 @@ Create `~/.spotigo.yaml`:
 spotify:
   client_id: "your_spotify_client_id"
   client_secret: "your_spotify_client_secret"
-  redirect_uri: "http://localhost:8888/callback"
+  redirect_uri: "http://127.0.0.1:8888/callback"
 
 ollama:
   host: "http://localhost:11434"
@@ -197,7 +197,7 @@ go get github.com/bkataru/spotigo@latest
 client := spotify.NewClient(spotify.Config{
     ClientID:     "your_client_id",
     ClientSecret: "your_client_secret",
-    RedirectURI:  "http://localhost:8888/callback",
+    RedirectURI:  "http://127.0.0.1:8888/callback",
 })
 
 // Get authentication URL

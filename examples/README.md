@@ -96,7 +96,7 @@ For examples to run, you'll need:
    ```
 3. **Spotify Developer Credentials**
    - Create app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-   - Set redirect URI to `http://localhost:8888/callback`
+   - Set redirect URI to `http://127.0.0.1:8888/callback`
 
 ## Next Steps
 

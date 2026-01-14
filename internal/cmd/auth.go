@@ -75,7 +75,7 @@ func runAuth() {
 		fmt.Println("To set up authentication:")
 		fmt.Println("1. Go to https://developer.spotify.com/dashboard")
 		fmt.Println("2. Create a new application")
-		fmt.Println("3. Set the redirect URI to: http://localhost:8888/callback")
+		fmt.Println("3. Set the redirect URI to: http://127.0.0.1:8888/callback")
 		fmt.Println("4. Copy your Client ID and Client Secret")
 		fmt.Println("5. Set them in your config file or environment:")
 		fmt.Println("   export SPOTIFY_CLIENT_ID=your_client_id")
@@ -120,7 +120,7 @@ func runAuth() {
 
 	// Start HTTP server to handle callback
 	fmt.Println("Waiting for callback...")
-	if err := handleCallback(client, state); err != nil {
+	if err := handleCallback(client, state, cfg.Spotify.RedirectURI); err != nil {
 		fmt.Printf("Error handling callback: %v\n", err)
 		return
 	}
@@ -220,8 +220,10 @@ func openBrowser(url string) error {
 
 	switch runtime.GOOS {
 	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
+		// Use rundll32 to open URLs on Windows - it handles special characters properly
+		// Unlike "cmd /c start", rundll32 doesn't interpret & as command separator
+		cmd = "rundll32"
+		args = []string{"url.dll,FileProtocolHandler", url}
 	case "darwin":
 		cmd = "open"
 		args = []string{url}
@@ -230,14 +232,10 @@ func openBrowser(url string) error {
 		args = []string{url}
 	}
 
-	if runtime.GOOS == "windows" {
-		args = append(args, url)
-	}
-
 	return exec.Command(cmd, args...).Start() //nolint:gosec // This is intentional browser opening
 }
 
-func handleCallback(client *spotify.Client, expectedState string) error {
+func handleCallback(client *spotify.Client, expectedState string, redirectURI string) error {
 	done := make(chan error, 1)
 
 	server := &http.Server{
@@ -255,7 +253,7 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 				return
 			}
 
-			if err := client.HandleCallback(r.Context(), expectedState, r); err != nil {
+			if err := client.HandleCallback(r.Context(), expectedState, r, redirectURI); err != nil {
 				done <- fmt.Errorf("callback failed: %w", err)
 				return
 			}
@@ -268,12 +266,15 @@ func handleCallback(client *spotify.Client, expectedState string) error {
 			}
 
 			// Send success response
-			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			if _, err := fmt.Fprintf(w, `<!DOCTYPE html>
 <html>
-<head><title>Spotigo - Authentication Successful</title></head>
+<head>
+	<meta charset="utf-8">
+	<title>Spotigo - Authentication Successful</title>
+</head>
 <body>
-	<h1>✅ Authentication Successful!</h1>
+	<h1>&#x2705; Authentication Successful!</h1>
 	<p>You can close this window and return to your terminal.</p>
 	<script>
 		setTimeout(() => window.close(), 3000);

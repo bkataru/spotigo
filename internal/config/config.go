@@ -123,7 +123,7 @@ func Load(cfgFile string) (*Config, error) {
 
 func setDefaults() {
 	// Spotify defaults
-	viper.SetDefault("spotify.redirect_uri", "http://localhost:8888/callback")
+	viper.SetDefault("spotify.redirect_uri", "http://127.0.0.1:8888/callback")
 	viper.SetDefault("spotify.token_file", ".spotify_token")
 
 	// Ollama defaults

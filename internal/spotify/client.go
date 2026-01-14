@@ -76,8 +76,8 @@ func (c *Client) GetAuthURL(state string) string {
 }
 
 // HandleCallback processes the OAuth callback
-func (c *Client) HandleCallback(ctx context.Context, state string, r *http.Request) error {
-	token, err := c.auth.Token(ctx, state, r)
+func (c *Client) HandleCallback(ctx context.Context, state string, r *http.Request, redirectURI string) error {
+	token, err := c.auth.Token(ctx, state, r, oauth2.SetAuthURLParam("redirect_uri", redirectURI))
 	if err != nil {
 		return fmt.Errorf("failed to get token: %w", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -150,6 +151,16 @@ func TestSaveLoadEncryptedFile(t *testing.T) {
 	info, err := os.Stat(testFile)
 	if err != nil {
 		t.Fatalf("file not created: %v", err)
+	}
+
+	// Windows doesn't strictly support Unix-style permissions in the same way,
+	// so we'll skip the exact permission check on Windows, or just check that it exists.
+	// On Linux/macOS we might check for 0600.
+	if runtime.GOOS != "windows" {
+		mode := info.Mode().Perm()
+		if mode != 0600 {
+			t.Logf("Warning: expected file permissions 0600, got %v", mode)
+		}
 	}
 
 	// Check file content is not plaintext

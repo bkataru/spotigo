@@ -32,7 +32,7 @@ func BackupExample() {
 			Spotify: config.SpotifyConfig{
 				ClientID:     "your_client_id_here",
 				ClientSecret: "your_client_secret_here",
-				RedirectURI:  "http://localhost:8888/callback",
+				RedirectURI:  "http://127.0.0.1:8888/callback",
 				TokenFile:    ".spotify_token",
 			},
 			Storage: config.StorageConfig{

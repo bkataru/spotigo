@@ -35,7 +35,7 @@ func TestLoad_Defaults(t *testing.T) {
 	}
 
 	// Check Spotify defaults
-	if cfg.Spotify.RedirectURI != "http://localhost:8888/callback" {
+	if cfg.Spotify.RedirectURI != "http://127.0.0.1:8888/callback" {
 		t.Errorf("expected default redirect URI, got '%s'", cfg.Spotify.RedirectURI)
 	}
 	if cfg.Spotify.TokenFile != ".spotify_token" {
