@@ -401,8 +401,8 @@ func saveBackupFilesConcurrent(store *storage.Store, backupData map[string]inter
 	wg.Wait()
 	close(errChan)
 
-	// Collect errors
-	var errs []error
+	// Collect errors - pre-allocate with capacity from channel
+	errs := make([]error, 0, len(backupData)+1)
 	for err := range errChan {
 		errs = append(errs, err)
 	}

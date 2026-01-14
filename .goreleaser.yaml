@@ -1,0 +1,116 @@
+# GoReleaser configuration for Spotigo
+# Documentation: https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: spotigo
+    main: ./cmd/spotigo
+    binary: spotigo
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    files:
+      - README.md
+      - LICENSE
+      - config/*.yaml
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'New Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Performance Improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: 'Other Changes'
+      order: 999
+
+release:
+  github:
+    owner: bkataru
+    name: spotigo
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Spotigo {{ .Version }}
+
+    Your personal AI music assistant - fully offline, privacy-first.
+  footer: |
+    **Full Changelog**: https://github.com/bkataru/spotigo/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ---
+
+    ### Installation
+
+    #### Binary Download
+    Download the appropriate binary for your platform from the assets below.
+
+    #### Go Install
+    ```bash
+    go install github.com/bkataru/spotigo/cmd/spotigo@{{ .Tag }}
+    ```
+
+    #### Docker
+    ```bash
+    docker pull ghcr.io/bkataru/spotigo:{{ .Version }}
+    ```
+
+# GitHub Packages
+gomod:
+  proxy: true
+  env:
+    - GOPROXY=https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
