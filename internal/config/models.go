@@ -75,38 +75,38 @@ func LoadModelConfig(configDir string) (*ModelConfig, error) {
 	return &cfg, nil
 }
 
-// GetModelForRole returns the primary model for a given role
-func (m *ModelConfig) GetModelForRole(role string) (string, error) {
+// getRoleModel returns the ModelRole for a given role name
+func (m *ModelConfig) getRoleModel(role string) (*ModelRole, error) {
 	switch role {
 	case "chat":
-		return m.Models.Chat.Primary, nil
+		return &m.Models.Chat, nil
 	case "fast":
-		return m.Models.Fast.Primary, nil
+		return &m.Models.Fast, nil
 	case "reasoning":
-		return m.Models.Reasoning.Primary, nil
+		return &m.Models.Reasoning, nil
 	case "tools":
-		return m.Models.Tools.Primary, nil
+		return &m.Models.Tools, nil
 	case "embeddings":
-		return m.Models.Embeddings.Primary, nil
+		return &m.Models.Embeddings, nil
 	default:
-		return "", fmt.Errorf("unknown model role: %s", role)
+		return nil, fmt.Errorf("unknown model role: %s", role)
 	}
+}
+
+// GetModelForRole returns the primary model for a given role
+func (m *ModelConfig) GetModelForRole(role string) (string, error) {
+	mr, err := m.getRoleModel(role)
+	if err != nil {
+		return "", err
+	}
+	return mr.Primary, nil
 }
 
 // GetFallbackForRole returns the fallback model for a given role
 func (m *ModelConfig) GetFallbackForRole(role string) (string, error) {
-	switch role {
-	case "chat":
-		return m.Models.Chat.Fallback, nil
-	case "fast":
-		return m.Models.Fast.Fallback, nil
-	case "reasoning":
-		return m.Models.Reasoning.Fallback, nil
-	case "tools":
-		return m.Models.Tools.Fallback, nil
-	case "embeddings":
-		return m.Models.Embeddings.Fallback, nil
-	default:
-		return "", fmt.Errorf("unknown model role: %s", role)
+	mr, err := m.getRoleModel(role)
+	if err != nil {
+		return "", err
 	}
+	return mr.Fallback, nil
 }

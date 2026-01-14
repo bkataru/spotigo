@@ -144,22 +144,19 @@ func performBackup(client *spotify.Client, store *storage.Store, backupType stri
 	// Create backup data structure
 	backupData := make(map[string]interface{})
 
-	switch backupType {
-	case "all", "tracks":
+	if backupType == "all" || backupType == "tracks" {
 		if err := backupTracks(ctx, client, store, backupData); err != nil {
 			return fmt.Errorf("failed to backup tracks: %w", err)
 		}
 	}
 
-	switch backupType {
-	case "all", "playlists":
+	if backupType == "all" || backupType == "playlists" {
 		if err := backupPlaylists(ctx, client, store, backupData); err != nil {
 			return fmt.Errorf("failed to backup playlists: %w", err)
 		}
 	}
 
-	switch backupType {
-	case "all", "artists":
+	if backupType == "all" || backupType == "artists" {
 		if err := backupArtists(ctx, client, store, backupData); err != nil {
 			return fmt.Errorf("failed to backup artists: %w", err)
 		}

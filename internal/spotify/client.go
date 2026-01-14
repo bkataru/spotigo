@@ -274,25 +274,27 @@ func (c *Client) GetFollowedArtists(ctx context.Context) ([]spotify.FullArtist, 
 	return allArtists, nil
 }
 
+// parseTimeRange converts a time range string to a Spotify Range constant
+func parseTimeRange(timeRange string) spotify.Range {
+	switch timeRange {
+	case "short":
+		return spotify.ShortTermRange
+	case "medium":
+		return spotify.MediumTermRange
+	case "long":
+		return spotify.LongTermRange
+	default:
+		return spotify.MediumTermRange
+	}
+}
+
 // GetTopTracks returns the user's top tracks
 func (c *Client) GetTopTracks(ctx context.Context, timeRange string) ([]spotify.FullTrack, error) {
 	if c.client == nil {
 		return nil, fmt.Errorf("client not authenticated")
 	}
 
-	var tr spotify.Range
-	switch timeRange {
-	case "short":
-		tr = spotify.ShortTermRange
-	case "medium":
-		tr = spotify.MediumTermRange
-	case "long":
-		tr = spotify.LongTermRange
-	default:
-		tr = spotify.MediumTermRange
-	}
-
-	tracks, err := c.client.CurrentUsersTopTracks(ctx, spotify.Limit(50), spotify.Timerange(tr))
+	tracks, err := c.client.CurrentUsersTopTracks(ctx, spotify.Limit(50), spotify.Timerange(parseTimeRange(timeRange)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get top tracks: %w", err)
 	}
@@ -306,19 +308,7 @@ func (c *Client) GetTopArtists(ctx context.Context, timeRange string) ([]spotify
 		return nil, fmt.Errorf("client not authenticated")
 	}
 
-	var tr spotify.Range
-	switch timeRange {
-	case "short":
-		tr = spotify.ShortTermRange
-	case "medium":
-		tr = spotify.MediumTermRange
-	case "long":
-		tr = spotify.LongTermRange
-	default:
-		tr = spotify.MediumTermRange
-	}
-
-	artists, err := c.client.CurrentUsersTopArtists(ctx, spotify.Limit(50), spotify.Timerange(tr))
+	artists, err := c.client.CurrentUsersTopArtists(ctx, spotify.Limit(50), spotify.Timerange(parseTimeRange(timeRange)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get top artists: %w", err)
 	}
