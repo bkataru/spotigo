@@ -733,19 +733,19 @@ func inValues(value interface{}, list interface{}) bool {
 
 // MusicQueryHelper provides high-level music-specific queries
 type MusicQueryHelper struct {
-	engine *Engine
+	Engine *Engine
 }
 
 // NewMusicQueryHelper creates a new music query helper
 func NewMusicQueryHelper(dataDir string) *MusicQueryHelper {
 	return &MusicQueryHelper{
-		engine: NewEngine(dataDir),
+		Engine: NewEngine(dataDir),
 	}
 }
 
 // GetAllArtists returns all unique artists from saved tracks
 func (m *MusicQueryHelper) GetAllArtists() QueryResult {
-	return m.engine.Execute(Query{
+	return m.Engine.Execute(Query{
 		Source:    "saved_tracks.json",
 		Operation: "distinct",
 		Field:     "track.artists.name",
@@ -754,7 +754,7 @@ func (m *MusicQueryHelper) GetAllArtists() QueryResult {
 
 // GetTracksByArtist returns tracks by a specific artist
 func (m *MusicQueryHelper) GetTracksByArtist(artistName string) QueryResult {
-	return m.engine.Execute(Query{
+	return m.Engine.Execute(Query{
 		Source:     "saved_tracks.json",
 		Operation:  "search",
 		Field:      "track.artists.name",
@@ -764,7 +764,7 @@ func (m *MusicQueryHelper) GetTracksByArtist(artistName string) QueryResult {
 
 // GetPlaylistByName returns a playlist by name
 func (m *MusicQueryHelper) GetPlaylistByName(name string) QueryResult {
-	return m.engine.Execute(Query{
+	return m.Engine.Execute(Query{
 		Source:     "playlists.json",
 		Operation:  "search",
 		Field:      "name",
@@ -774,7 +774,7 @@ func (m *MusicQueryHelper) GetPlaylistByName(name string) QueryResult {
 
 // GetRecentlyAddedTracks returns the most recently added tracks
 func (m *MusicQueryHelper) GetRecentlyAddedTracks(limit int) QueryResult {
-	return m.engine.Execute(Query{
+	return m.Engine.Execute(Query{
 		Source:    "saved_tracks.json",
 		Operation: "sort",
 		SortBy:    "added_at",
@@ -785,17 +785,17 @@ func (m *MusicQueryHelper) GetRecentlyAddedTracks(limit int) QueryResult {
 
 // GetLibraryStats returns statistics about the music library
 func (m *MusicQueryHelper) GetLibraryStats() QueryResult {
-	tracksResult := m.engine.Execute(Query{
+	tracksResult := m.Engine.Execute(Query{
 		Source:    "saved_tracks.json",
 		Operation: "count",
 	})
 
-	playlistsResult := m.engine.Execute(Query{
+	playlistsResult := m.Engine.Execute(Query{
 		Source:    "playlists.json",
 		Operation: "count",
 	})
 
-	artistsResult := m.engine.Execute(Query{
+	artistsResult := m.Engine.Execute(Query{
 		Source:    "followed_artists.json",
 		Operation: "count",
 	})
@@ -817,7 +817,7 @@ func (m *MusicQueryHelper) SearchAllData(term string, limit int) QueryResult {
 
 	files := []string{"saved_tracks.json", "playlists.json", "followed_artists.json"}
 	for _, file := range files {
-		result := m.engine.Execute(Query{
+		result := m.Engine.Execute(Query{
 			Source:     file,
 			Operation:  "search",
 			SearchTerm: term,

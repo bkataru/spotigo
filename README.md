@@ -92,6 +92,8 @@ spotigo backup status            # Show backup status
 
 # AI-powered chat about your music
 spotigo chat                     # Start interactive chat session
+spotigo chat --tools=true        # Enable function calling (default)
+spotigo chat --data-dir ./data   # Specify data directory
 
 # Semantic search across music library
 spotigo search "rock music"      # Search with natural language
@@ -151,8 +153,10 @@ spotigo --config /path/to/config.yaml backup
 
 - **Spotify API Integration** - Comprehensive Go client for Spotify Web API with OAuth2 authentication
 - **CLI Application** - Full-featured command-line interface for end users
+- **AI Chat with Function Calling** - Natural language queries with structured JSON tool execution
 - **RAG Vector Store** - In-memory vector store with semantic search capabilities
 - **Ollama Integration** - Client for local LLM inference with chat and embedding generation
+- **JSON Query Engine** - Powerful structured queries for music data (filtering, sorting, aggregation)
 - **Local Storage** - Encrypted token storage and persistent data management
 - **Semantic Search** - Vector-based similarity search across music metadata
 - **Batch Processing** - Parallel embedding generation and efficient bulk operations
@@ -246,6 +250,76 @@ err := store.Add(ctx, rag.Document{
 
 // Semantic search
 results, err := store.Search(ctx, "upbeat rock music", 10, "track")
+```
+
+### AI Chat with Tool Calling
+
+The AI chat uses function calling to efficiently query your music library without loading all data into context.
+
+```bash
+# Start chat with tool calling enabled
+spotigo chat
+
+# Example conversation:
+You: How many tracks do I have?
+🔧 Calling tool: get_library_stats
+Spotigo: You have 1,234 saved tracks, 25 playlists, and 42 followed artists.
+
+You: Find my most popular Queen songs
+🔧 Calling tool: get_tracks_by_artist
+🔧 Calling tool: query_music_data
+Spotigo: Here are your top Queen tracks:
+1. "Bohemian Rhapsody" (popularity: 95)
+2. "We Will Rock You" (popularity: 90)
+...
+```
+
+**Available Tools:**
+- `get_library_stats` - Overall library statistics
+- `search_tracks` - Search by artist, song, album
+- `get_tracks_by_artist` - All tracks by specific artist
+- `get_recently_added_tracks` - Recently saved tracks
+- `get_all_artists` - List all unique artists
+- `get_playlist_by_name` - Find playlists
+- `query_music_data` - Custom queries with filters, sorting, aggregation
+
+**Why Function Calling?**
+- ✅ **Efficient** - Only retrieves relevant data, minimal context usage
+- ✅ **Accurate** - Structured queries are more precise than text embeddings
+- ✅ **Fast** - Direct JSON queries with caching
+- ✅ **Structured** - Preserves data relationships and schema
+
+For detailed documentation on AI chat and tool calling, see [docs/TOOLS.md](docs/TOOLS.md).
+
+### JSON Query Engine
+
+```go
+import "github.com/bkataru/spotigo/internal/jsonquery"
+
+// Create query engine
+engine := jsonquery.NewEngine("./data")
+
+// Execute structured query
+result := engine.Execute(jsonquery.Query{
+    Source:    "saved_tracks.json",
+    Operation: "filter",
+    Filters: []jsonquery.Filter{
+        {
+            Field:    "track.popularity",
+            Operator: "gte",
+            Value:    90,
+        },
+    },
+    SortBy:    "track.popularity",
+    SortOrder: "desc",
+    Limit:     10,
+})
+
+// Use music query helpers
+helper := jsonquery.NewMusicQueryHelper("./data")
+stats := helper.GetLibraryStats()
+tracks := helper.GetTracksByArtist("Queen")
+recent := helper.GetRecentlyAddedTracks(20)
 ```
 
 ## Supported Models

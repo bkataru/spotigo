@@ -33,12 +33,40 @@ type ChatRequest struct {
 	Messages []Message `json:"messages"`
 	Stream   bool      `json:"stream"`
 	Options  *Options  `json:"options,omitempty"`
+	Tools    []Tool    `json:"tools,omitempty"`
 }
 
 // Message represents a chat message
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role      string     `json:"role"`
+	Content   string     `json:"content"`
+	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
+}
+
+// Tool represents a function tool
+type Tool struct {
+	Type     string      `json:"type"`
+	Function FunctionDef `json:"function"`
+}
+
+// FunctionDef defines a callable function
+type FunctionDef struct {
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Parameters  map[string]interface{} `json:"parameters"`
+}
+
+// ToolCall represents a tool invocation from the model
+type ToolCall struct {
+	ID       string       `json:"id"`
+	Type     string       `json:"type"`
+	Function FunctionCall `json:"function"`
+}
+
+// FunctionCall represents the function call details
+type FunctionCall struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
 }
 
 // Options represents model options

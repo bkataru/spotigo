@@ -2,87 +2,111 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: "1.24"
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-        
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-          
-    - name: Download dependencies
-      run: go mod download
-      
-    - name: Run tests with coverage
-      run: go test -race -coverprofile=coverage.out -covermode=atomic -timeout 5m ./...
-      
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage.out
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-        verbose: true
-      
-    - name: Run vet
-      run: go vet ./...
-      
-    - name: Check formatting
-      run: |
-        if [ "$(gofmt -s -l . | grep -v vendor | head -n 1)" ]; then
-          echo "Code is not formatted properly:"
-          gofmt -s -l . | grep -v vendor
-          exit 1
-        fi
-        
-    - name: Build library
-      run: go build -v ./...
-      
-    - name: Build example CLI
-      run: go build -v ./cmd/spotigo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests with coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic -timeout 5m ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Generate coverage report
+        run: |
+          go tool cover -func=coverage.out -o=coverage.txt
+          echo "## Coverage Report" > coverage-summary.md
+          echo "" >> coverage-summary.md
+          echo '```' >> coverage-summary.md
+          cat coverage.txt | tail -n 20 >> coverage-summary.md
+          echo '```' >> coverage-summary.md
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('coverage-summary.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverage
+            });
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | grep -v vendor | head -n 1)" ]; then
+            echo "Code is not formatted properly:"
+            gofmt -s -l . | grep -v vendor
+            exit 1
+          fi
+
+      - name: Build library
+        run: go build -v ./...
+
+      - name: Build example CLI
+        run: go build -v ./cmd/spotigo
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-        
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: latest
-        args: --timeout=5m
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
 
   security:
     name: Security Scan
@@ -92,24 +116,24 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: "-no-fail -fmt sarif -out results.sarif ./..."
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v4
-      if: always()
-      with:
-        sarif_file: results.sarif
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: results.sarif
 
   benchmark:
     name: Benchmark
@@ -119,95 +143,95 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Download dependencies
-      run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-    - name: Run benchmarks
-      run: go test -bench=. -benchmem -benchtime=100ms -timeout 2m ./internal/rag/ | tee bench-results.txt
+      - name: Run benchmarks
+        run: go test -bench=. -benchmem -benchtime=100ms -timeout 2m ./internal/rag/ | tee bench-results.txt
 
-    - name: Create gh-pages branch if not exists
-      if: github.event_name == 'push'
-      run: |
-        # Check if gh-pages branch exists remotely
-        if ! git ls-remote --exit-code --heads origin gh-pages > /dev/null 2>&1; then
-          echo "Creating gh-pages branch..."
-          git checkout --orphan gh-pages
-          git rm -rf . || true
-          echo "# Benchmark Results" > README.md
-          git add README.md
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Initialize gh-pages branch for benchmarks"
-          git push origin gh-pages
-          git checkout main
-        fi
+      - name: Create gh-pages branch if not exists
+        if: github.event_name == 'push'
+        run: |
+          # Check if gh-pages branch exists remotely
+          if ! git ls-remote --exit-code --heads origin gh-pages > /dev/null 2>&1; then
+            echo "Creating gh-pages branch..."
+            git checkout --orphan gh-pages
+            git rm -rf . || true
+            echo "# Benchmark Results" > README.md
+            git add README.md
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "Initialize gh-pages branch for benchmarks"
+            git push origin gh-pages
+            git checkout main
+          fi
 
-    - name: Store benchmark result
-      uses: benchmark-action/github-action-benchmark@v1
-      if: github.event_name == 'push'
-      continue-on-error: true
-      with:
-        name: Go Benchmark
-        tool: 'go'
-        output-file-path: bench-results.txt
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        auto-push: true
-        comment-on-alert: true
-        alert-threshold: '200%'
-        fail-on-alert: false
-        skip-fetch-gh-pages: false
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        if: github.event_name == 'push'
+        continue-on-error: true
+        with:
+          name: Go Benchmark
+          tool: "go"
+          output-file-path: bench-results.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          comment-on-alert: true
+          alert-threshold: "200%"
+          fail-on-alert: false
+          skip-fetch-gh-pages: false
 
   vulnerability-scan:
     name: Vulnerability Scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-    - name: Run govulncheck
-      run: govulncheck ./cmd/... ./internal/...
+      - name: Run govulncheck
+        run: govulncheck ./cmd/... ./internal/...
 
-    - name: Check go.mod tidy
-      run: |
-        go mod tidy
-        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
-          echo "go.mod or go.sum is not tidy. Run 'go mod tidy' and commit the changes."
-          git diff go.mod go.sum
-          exit 1
-        fi
+      - name: Check go.mod tidy
+        run: |
+          go mod tidy
+          if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+            echo "go.mod or go.sum is not tidy. Run 'go mod tidy' and commit the changes."
+            git diff go.mod go.sum
+            exit 1
+          fi
 
   build-matrix:
     name: Build Matrix
     runs-on: ubuntu-latest
     needs: [test, lint]
-    
+
     strategy:
       matrix:
         goos: [linux, windows, darwin]
@@ -215,24 +239,24 @@ jobs:
         exclude:
           - goos: windows
             goarch: arm64
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-        
-    - name: Build library
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-      run: go build -v ./...
-      
-    - name: Build example CLI
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-      run: go build -v ./cmd/spotigo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build library
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -v ./...
+
+      - name: Build example CLI
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -v ./cmd/spotigo
