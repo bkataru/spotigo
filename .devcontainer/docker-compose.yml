@@ -35,13 +35,15 @@ services:
       context: .
       dockerfile: ./Dockerfile
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     volumes:
       - ../:/workspace
       - ~/.ssh:/home/vscode/.ssh:ro
       - ~/.ssh:/root/.ssh:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - go_cache:/go/pkg/mod
+      - test_data:/workspace/test/data
     environment:
       - TZ=UTC
       - OLLAMA_HOST=http://ollama:11434
@@ -57,3 +59,6 @@ volumes:
     driver: local
   go_cache:
     driver: local
+  test_data:
+    driver: local
+
