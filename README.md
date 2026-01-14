@@ -6,71 +6,49 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/bkataru/spotigo)](https://goreportcard.com/report/github.com/bkataru/spotigo)
 [![Go Reference](https://pkg.go.dev/badge/github.com/bkataru/spotigo.svg)](https://pkg.go.dev/github.com/bkataru/spotigo)
 
-**A Go library and CLI application for AI-powered Spotify library management with local RAG capabilities.**
+**A powerful command-line application and Go library for AI-powered Spotify library management with local RAG capabilities.**
 
-Spotigo provides both a comprehensive Go library for developers and a powerful command-line interface for end users to interact with Spotify APIs, manage local music libraries, and implement RAG (Retrieval-Augmented Generation) functionality with Ollama for AI-powered music analysis.
+Spotigo provides both a comprehensive CLI application for end users and a powerful Go library for developers. Interact with Spotify APIs, manage local music libraries, and implement RAG (Retrieval-Augmented Generation) functionality with Ollama for AI-powered music analysis.
 
-## Features
+## Quick Start
 
-- **Spotify API Integration** - Comprehensive Go client for Spotify Web API with OAuth2 authentication
-- **RAG Vector Store** - In-memory vector store with semantic search capabilities
-- **Ollama Integration** - Client for local LLM inference with chat and embedding generation
-- **Local Storage** - Encrypted token storage and persistent data management
-- **Semantic Search** - Vector-based similarity search across music metadata
-- **Batch Processing** - Parallel embedding generation and efficient bulk operations
-- **Type-Safe APIs** - Well-documented Go interfaces with comprehensive error handling
+### As a CLI Application
 
+1. **Install Spotigo CLI:**
+   ```bash
+   # Download pre-built binary from releases
+   # OR build from source:
+   git clone https://github.com/bkataru/spotigo.git
+   cd spotigo
+   go build -o spotigo ./cmd/spotigo
+   ```
 
+2. **Authenticate with Spotify:**
+   ```bash
+   spotigo auth
+   ```
 
-## Table of Contents
+3. **Backup your Spotify library:**
+   ```bash
+   spotigo backup
+   ```
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [Supported Models](#supported-models)
-- [Development](#development)
-- [Architecture](#architecture)
-- [Contributing](#contributing)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [License](#license)
+4. **Chat with your music library:**
+   ```bash
+   spotigo chat
+   ```
 
-## Installation
-
-### Prerequisites
-
-- Go 1.24+
-- Ollama (optional, for AI functionality)
-- Spotify Developer Account (for API access)
-
-### Go Module
+### As a Go Library
 
 ```bash
 go get github.com/bkataru/spotigo@latest
 ```
-
-### From Source
-
-```bash
-# Clone the repository
-git clone https://github.com/bkataru/spotigo.git
-cd spotigo
-
-# Use as a library dependency in your go.mod
-```
-
-## Quick Start
-
-### Basic Usage
 
 ```go
 package main
 
 import (
     "context"
-    "fmt"
     "log"
 
     "github.com/bkataru/spotigo/internal/spotify"
@@ -96,11 +74,118 @@ func main() {
 
     // Initialize RAG store
     store := rag.NewStore(ollamaClient, "nomic-embed-text-v2-moe", "./data/store.json")
-
-    // Use the components...
-    _ = spotifyClient
-    _ = store
 }
+```
+
+## CLI Usage
+
+Spotigo comes with a comprehensive command-line interface for managing your Spotify library and performing AI-powered analysis.
+
+### Available Commands
+
+```bash
+# Backup and restore Spotify library
+spotigo backup                    # Backup your library
+spotigo backup list              # List available backups
+spotigo backup restore <id>      # Restore from backup
+spotigo backup status            # Show backup status
+
+# AI-powered chat about your music
+spotigo chat                     # Start interactive chat session
+
+# Semantic search across music library
+spotigo search "rock music"      # Search with natural language
+spotigo search index             # Build/rebuild search index
+spotigo search status            # Show search index status
+
+# Statistics and insights
+spotigo stats                    # Overall listening statistics
+spotigo stats top                # Top tracks and artists
+spotigo stats genres             # Genre distribution analysis
+spotigo stats playlists          # Playlist analysis
+
+# Authentication management
+spotigo auth                     # Authenticate with Spotify
+spotigo auth status              # Check authentication status
+spotigo auth logout              # Remove credentials
+
+# Ollama model management
+spotigo models list              # List recommended models
+spotigo models status            # Show installed models
+spotigo models pull              # Pull recommended models
+
+# Interactive TUI mode
+spotigo --tui                    # Launch terminal UI interface
+```
+
+### Configuration
+
+Create `~/.spotigo.yaml`:
+
+```yaml
+spotify:
+  client_id: "your_spotify_client_id"
+  client_secret: "your_spotify_client_secret"
+  redirect_uri: "http://localhost:8888/callback"
+
+ollama:
+  host: "http://localhost:11434"
+  timeout: 30
+
+storage:
+  data_dir: "./data"
+  backup_dir: "./data/backups"
+  embeddings_dir: "./data/embeddings"
+
+backup:
+  schedule: "daily"
+  retain_days: \\
+```
+
+Use custom config:
+```bash
+spotigo --config /path/to/config.yaml backup
+```
+
+## Features
+
+- **Spotify API Integration** - Comprehensive Go client for Spotify Web API with OAuth2 authentication
+- **CLI Application** - Full-featured command-line interface for end users
+- **RAG Vector Store** - In-memory vector store with semantic search capabilities
+- **Ollama Integration** - Client for local LLM inference with chat and embedding generation
+- **Local Storage** - Encrypted token storage and persistent data management
+- **Semantic Search** - Vector-based similarity search across music metadata
+- **Batch Processing** - Parallel embedding generation and efficient bulk operations
+- **Type-Safe APIs** - Well-documented Go interfaces with comprehensive error handling
+- **Terminal UI** - Interactive menu-driven interface for all features
+
+## Installation
+
+### Prerequisites
+
+- Go 1.24+ (for building from source)
+- Ollama (optional, for AI functionality)
+- Spotify Developer Account (for API access)
+
+### Install as CLI Application
+
+**Option 1: Download pre-built binary**
+- Visit the [releases page](https://github.com/bkataru/spotigo/releases)
+- Download the binary for your platform
+- Add to your PATH
+
+**Option 2: Build from source**
+```bash
+git clone https://github.com/bkataru/spotigo.git
+cd spotigo
+go build -o spotigo ./cmd/spotigo
+sudo mv spotigo /usr/local/bin/  # or add to your PATH
+```
+
+### Install as Go Library
+
+```bash
+go get github.com/bkataru/spotigo@latest
 ```
 
 ## API Reference
@@ -163,33 +248,6 @@ err := store.Add(ctx, rag.Document{
 results, err := store.Search(ctx, "upbeat rock music", 10, "track")
 ```
 
-## Configuration
-
-### Spotify Client Configuration
-
-```go
-type Config struct {
-    ClientID     string
-    ClientSecret string
-    RedirectURI  string
-    TokenFile    string // Optional: encrypted token storage
-}
-```
-
-### Ollama Client Configuration
-
-```go
-// Create with custom timeout
-client := ollama.NewClient("http://localhost:11434", 60*time.Second)
-```
-
-### RAG Store Configuration
-
-```go
-// Initialize with custom embedding model and storage path
-store := rag.NewStore(ollamaClient, "qwen3-embedding:0.6b", "/path/to/store.json")
-```
-
 ## Supported Models
 
 ### Embedding Models
@@ -205,12 +263,7 @@ store := rag.NewStore(ollamaClient, "qwen3-embedding:0.6b", "/path/to/store.json
 
 ## Development
 
-### Prerequisites
-
-- Go 1.24+
-- Ollama (for testing AI functionality)
-
-### Setup
+### Setup Development Environment
 
 ```bash
 # Clone the repository
@@ -225,12 +278,16 @@ go test ./...
 
 # Run linter
 golangci-lint run
+
+# Build CLI
+go build -o spotigo ./cmd/spotigo
 ```
 
 ### Project Structure
 
 ```
 spotigo/
+├── cmd/spotigo/         # CLI application entry point
 ├── internal/
 │   ├── config/          # Configuration management
 │   ├── crypto/          # Token encryption utilities
@@ -238,8 +295,9 @@ spotigo/
 │   ├── ollama/          # Ollama API client
 │   ├── rag/             # RAG vector store
 │   ├── spotify/         # Spotify API client
-│   └── storage/         # Local file storage
-├── cmd/spotigo/         # CLI application (example usage)
+│   ├── storage/         # Local file storage
+│   └── cmd/             # CLI command implementations
+├── examples/            # Example usage (library and CLI)
 ├── .github/workflows/   # CI/CD pipelines
 └── go.mod              # Module definition
 ```
@@ -253,16 +311,16 @@ spotigo/
 │   Spotify   │────>│   Spotify   │────>│   RAG       │
 │     API     │     │   Client    │     │   Store     │
 └─────────────┘     └─────────────┘     └─────────────┘
-                                              │
-                    ┌─────────────┐           │
-                    │   Ollama    │<──────────┤
-                    │   Client    │           │
-                    └─────────────┘           │
-                          │                   │
-                    ┌─────────────┐     ┌─────────────┐
-                    │   Local     │     │   Your      │
-                    │   Storage   │<───>│   Application │
-                    └─────────────┘     └─────────────┘
+                                             │
+                   ┌─────────────┐           │
+                   │   Ollama    │<──────────┤
+                   │   Client    │           │
+                   └─────────────┘           │
+                         │                   │
+                   ┌─────────────┐     ┌─────────────┐
+                   │   Local     │     │   CLI/API   │
+                   │   Storage   │<───>│   Interface │
+                   └─────────────┘     └─────────────┘
 ```
 
 ### Security Features
@@ -311,22 +369,22 @@ go test ./...
 
 ### General Questions
 
-**Q: Does this library send data to external servers?**
+**Q: Does this application send data to external servers?**
 
-A: No. All AI processing happens locally via Ollama. The library does not include telemetry or analytics.
+A: No. All AI processing happens locally via Ollama. The application does not include telemetry or analytics.
 
-**Q: What Spotify data can I access with this library?**
+**Q: What Spotify data can I access?**
 
-A: The Spotify client supports read-only access to:
+A: The application supports read-only access to:
 - Saved tracks and albums
 - User playlists (including private ones)
 - Followed artists
 - Recently played tracks
 - Top tracks and artists
 
-The library cannot modify your Spotify library or play music.
+The application cannot modify your Spotify library or play music.
 
-**Q: Can I use this library offline?**
+**Q: Can I use this application offline?**
 
 A: After initial Spotify authentication, most features work offline:
 - Semantic search (with pre-generated embeddings)
@@ -374,107 +432,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Ollama](https://ollama.ai/) - Local LLM inference
 - [Spotify Web API](https://developer.spotify.com/) - Music data
 - [zmb3/spotify](https://github.com/zmb3/spotify) - Go Spotify client
-
-## CLI Usage
-
-Spotigo can be used as a standalone CLI application for backing up your Spotify library and performing AI-powered analysis.
-
-### Installation
-
-To install the CLI, you can either:
-
-1. Download a pre-built binary from the [releases page](https://github.com/bkataru/spotigo/releases)
-2. Build from source:
-   ```bash
-   git clone https://github.com/bkataru/spotigo.git
-   cd spotigo
-   go build -o spotigo ./cmd/spotigo
-   ```
-
-### Getting Started
-
-1. First, authenticate with Spotify:
-   ```bash
-   spotigo auth
-   ```
-
-2. Backup your Spotify library:
-   ```bash
-   spotigo backup
-   ```
-
-3. Build search index for semantic search (requires Ollama):
-   ```bash
-   spotigo search index
-   ```
-
-4. Start chatting with your music library:
-   ```bash
-   spotigo chat
-   ```
-
-### Available Commands
-
-- `spotigo backup` - Backup your Spotify library
-  - `spotigo backup list` - List available backups
-  - `spotigo backup restore [backup-id]` - Restore from a backup
-  - `spotigo backup status` - Show backup status and schedule
-
-- `spotigo chat` - Start an AI chat session about your music
-  - Uses local LLMs via Ollama for privacy-first conversations
-
-- `spotigo search [query]` - Semantic search across your music library
-  - `spotigo search index` - Build or rebuild the search index
-  - `spotigo search status` - Show search index status
-
-- `spotigo stats` - View listening statistics and insights
-  - `spotigo stats top` - Show top tracks and artists
-  - `spotigo stats genres` - Analyze genre distribution
-  - `spotigo stats playlists` - Playlist analysis
-
-- `spotigo auth` - Manage Spotify authentication
-  - `spotigo auth status` - Check authentication status
-  - `spotigo auth logout` - Remove stored credentials
-
-- `spotigo models` - Manage Ollama models
-  - `spotigo models list` - List recommended models
-  - `spotigo models status` - Show installed models
-  - `spotigo models pull` - Pull recommended models
-
-### Configuration
-
-The CLI uses a configuration file (default: `$HOME/.spotigo.yaml`) to manage settings:
-
-```yaml
-spotify:
-  client_id: "your_spotify_client_id"
-  client_secret: "your_spotify_client_secret"
-  redirect_uri: "http://localhost:8888/callback"
-
-ollama:
-  host: "http://localhost:11434"
-  timeout: 30
-
-storage:
-  data_dir: "./data"
-  backup_dir: "./data/backups"
-  embeddings_dir: "./data/embeddings"
-
-backup:
-  schedule: "daily"
-  retain_days: 30
-```
-
-You can specify a custom config file with the `--config` flag:
-```bash
-spotigo --config /path/to/your/config.yaml backup
-```
-
-### TUI Mode
-
-Launch Spotigo in Terminal User Interface mode:
-```bash
-spotigo --tui
-```
-
-This provides an interactive menu-driven interface for all features.
