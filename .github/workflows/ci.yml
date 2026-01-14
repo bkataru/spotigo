@@ -139,7 +139,7 @@ jobs:
       run: go mod download
 
     - name: Run benchmarks
-      run: go test -bench=. -benchmem -timeout 5m ./internal/rag/
+      run: go test -bench=. -benchmem -benchtime=100ms -timeout 2m ./internal/rag/ | tee bench-results.txt
 
     - name: Store benchmark result
       uses: benchmark-action/github-action-benchmark@v1

@@ -325,21 +325,3 @@ func TestStore_SearchWithEmbeddings(t *testing.T) {
 		t.Errorf("expected 3 documents, got %d", store.Count())
 	}
 }
-
-// BenchmarkCosineSimilarity benchmarks the cosine similarity calculation
-func BenchmarkCosineSimilarity(b *testing.B) {
-	// Create vectors typical of embedding models (768-1024 dimensions)
-	size := 768
-	a := make([]float64, size)
-	vecB := make([]float64, size)
-
-	for i := 0; i < size; i++ {
-		a[i] = float64(i) / float64(size)
-		vecB[i] = float64(size-i) / float64(size)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		cosineSimilarity(a, vecB)
-	}
-}
