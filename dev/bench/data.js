@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768426098054,
+  "lastUpdate": 1768426848753,
   "repoUrl": "https://github.com/bkataru/spotigo",
   "entries": {
     "Go Benchmark": [
@@ -3744,6 +3744,318 @@ window.BENCHMARK_DATA = {
             "value": 1,
             "unit": "allocs/op",
             "extra": "255327 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "baalateja.k@gmail.com",
+            "name": "bkataru",
+            "username": "bkataru"
+          },
+          "committer": {
+            "email": "baalateja.k@gmail.com",
+            "name": "bkataru",
+            "username": "bkataru"
+          },
+          "distinct": true,
+          "id": "239571a8f3f760ececbd5948b2fc9038b8d74bce",
+          "message": "ci: fix golangci-lint failures (staticcheck, errcheck, gofmt)",
+          "timestamp": "2026-01-15T03:10:05+05:30",
+          "tree_id": "ddd48938a3cb2dce9ef3903f959075f681db9247",
+          "url": "https://github.com/bkataru/spotigo/commit/239571a8f3f760ececbd5948b2fc9038b8d74bce"
+        },
+        "date": 1768426848442,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkStore_Add",
+            "value": 444.4,
+            "unit": "ns/op\t     322 B/op\t       2 allocs/op",
+            "extra": "447842 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - ns/op",
+            "value": 444.4,
+            "unit": "ns/op",
+            "extra": "447842 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - B/op",
+            "value": 322,
+            "unit": "B/op",
+            "extra": "447842 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - allocs/op",
+            "value": 2,
+            "unit": "allocs/op",
+            "extra": "447842 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10",
+            "value": 1166,
+            "unit": "ns/op\t    3752 B/op\t       7 allocs/op",
+            "extra": "100508 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - ns/op",
+            "value": 1166,
+            "unit": "ns/op",
+            "extra": "100508 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - B/op",
+            "value": 3752,
+            "unit": "B/op",
+            "extra": "100508 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - allocs/op",
+            "value": 7,
+            "unit": "allocs/op",
+            "extra": "100508 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50",
+            "value": 5942,
+            "unit": "ns/op\t   16744 B/op\t      11 allocs/op",
+            "extra": "20359 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - ns/op",
+            "value": 5942,
+            "unit": "ns/op",
+            "extra": "20359 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - B/op",
+            "value": 16744,
+            "unit": "B/op",
+            "extra": "20359 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - allocs/op",
+            "value": 11,
+            "unit": "allocs/op",
+            "extra": "20359 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50",
+            "value": 7101,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "16994 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - ns/op",
+            "value": 7101,
+            "unit": "ns/op",
+            "extra": "16994 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "16994 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "16994 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100",
+            "value": 14207,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "8442 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - ns/op",
+            "value": 14207,
+            "unit": "ns/op",
+            "extra": "8442 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "8442 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "8442 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save",
+            "value": 1998499,
+            "unit": "ns/op\t  418293 B/op\t     159 allocs/op",
+            "extra": "51 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - ns/op",
+            "value": 1998499,
+            "unit": "ns/op",
+            "extra": "51 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - B/op",
+            "value": 418293,
+            "unit": "B/op",
+            "extra": "51 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - allocs/op",
+            "value": 159,
+            "unit": "allocs/op",
+            "extra": "51 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load",
+            "value": 2229443,
+            "unit": "ns/op\t  322268 B/op\t     875 allocs/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - ns/op",
+            "value": 2229443,
+            "unit": "ns/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - B/op",
+            "value": 322268,
+            "unit": "B/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - allocs/op",
+            "value": 875,
+            "unit": "allocs/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128",
+            "value": 126.9,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "944382 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - ns/op",
+            "value": 126.9,
+            "unit": "ns/op",
+            "extra": "944382 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "944382 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "944382 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384",
+            "value": 366.5,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "327787 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - ns/op",
+            "value": 366.5,
+            "unit": "ns/op",
+            "extra": "327787 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "327787 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "327787 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count",
+            "value": 5.78,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "20673981 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - ns/op",
+            "value": 5.78,
+            "unit": "ns/op",
+            "extra": "20673981 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "20673981 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "20673981 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType",
+            "value": 3531,
+            "unit": "ns/op\t     256 B/op\t       2 allocs/op",
+            "extra": "33618 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - ns/op",
+            "value": 3531,
+            "unit": "ns/op",
+            "extra": "33618 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - B/op",
+            "value": 256,
+            "unit": "B/op",
+            "extra": "33618 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - allocs/op",
+            "value": 2,
+            "unit": "allocs/op",
+            "extra": "33618 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear",
+            "value": 519,
+            "unit": "ns/op\t      48 B/op\t       1 allocs/op",
+            "extra": "230810 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - ns/op",
+            "value": 519,
+            "unit": "ns/op",
+            "extra": "230810 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - B/op",
+            "value": 48,
+            "unit": "B/op",
+            "extra": "230810 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "230810 times\n4 procs"
           }
         ]
       }
