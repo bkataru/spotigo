@@ -29,7 +29,7 @@ linters:
     - durationcheck    # Check for two durations multiplied together
     - errname          # Check error naming conventions
     - errorlint        # Find code that will cause problems with error wrapping
-    - exportloopref    # Check for pointers to enclosing loop variables
+    - copyloopvar      # Check for loop variable copies (replacement for exportloopref)
     - gofmt            # Check code formatting
     - goimports        # Check import formatting
     - gosec            # Security checker
@@ -50,7 +50,7 @@ linters:
     - gocognit         # Cognitive complexity varies
     - goconst          # Sometimes repetition is clearer
     - godox            # Allow TODOs
-    - gomnd            # Magic numbers are often clear in context
+    - gomnd            # Magic numbers are often clear in context (deprecated)
     - lll              # Line length varies
     - nestif           # Nesting depth varies
     - nlreturn         # Too strict about blank lines

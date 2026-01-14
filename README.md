@@ -139,10 +139,10 @@ storage:
 
 backup:
   schedule: "daily"
-  retain_days: \\
+  retain_days: 30
 ```
 
-Use custom config:
+Use a custom configuration file:
 ```bash
 spotigo --config /path/to/config.yaml backup
 ```
@@ -431,4 +431,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - [Ollama](https://ollama.ai/) - Local LLM inference
 - [Spotify Web API](https://developer.spotify.com/) - Music data
-- [zmb3/spotify](https://github.com/zmb3/spotify) - Go Spotify client
+- [zmb3's Spotify library](https://github.com/zmb3/spotify) - Go client library

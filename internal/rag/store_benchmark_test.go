@@ -276,19 +276,17 @@ func BenchmarkStore_CountByType(b *testing.B) {
 
 // BenchmarkStore_Clear benchmarks clearing the store
 func BenchmarkStore_Clear(b *testing.B) {
-	sizes := []int{100, 1000, 10000}
+	sizes := []int{100, 1000}
 
 	for _, size := range sizes {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			// Pre-generate documents once
 			docs := generateDocuments(size, 768)
 
-			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				store := NewStore(nil, "", "")
-				for _, doc := range docs {
-					_ = store.Add(context.Background(), doc)
-				}
+				_ = store.AddBatch(context.Background(), docs)
 				b.StartTimer()
 
 				store.Clear()

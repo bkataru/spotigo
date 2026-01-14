@@ -29,3 +29,4 @@ protobuf
 gofmt
 goimports
 configs
+zmb3
