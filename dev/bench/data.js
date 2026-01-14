@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768422688866,
+  "lastUpdate": 1768425050574,
   "repoUrl": "https://github.com/bkataru/spotigo",
   "entries": {
     "Go Benchmark": [
@@ -2808,6 +2808,318 @@ window.BENCHMARK_DATA = {
             "value": 1,
             "unit": "allocs/op",
             "extra": "286798 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "baalateja.k@gmail.com",
+            "name": "bkataru",
+            "username": "bkataru"
+          },
+          "committer": {
+            "email": "baalateja.k@gmail.com",
+            "name": "bkataru",
+            "username": "bkataru"
+          },
+          "distinct": true,
+          "id": "1933113dc46f69082a2da07016ae051d5e9481dd",
+          "message": "feat: massive improvements - cyberpunk TUI, comprehensive tests, full documentation\n\nMajor Changes:\n═══════════════════════════════════════════════════════════════════════\n\n🎨 UI/UX Enhancements:\n- Redesigned TUI with cyberpunk nuclear green theme (#39FF14)\n- Added stunning ASCII art logo for Spotigo\n- Implemented retro-modern aesthetic with Matrix-inspired colors\n- Added vim-style navigation (Ctrl+J/K) alongside arrow keys\n- Added comprehensive status bar showing cursor position and mode\n- Created compact view for smaller terminals\n- Wraparound cursor navigation for better UX\n\n🧪 Testing & Coverage (98.8% for TUI!):\n- Added 98.8% test coverage for internal/tui package\n- Created comprehensive OAuth integration tests\n- Added 40+ unit tests for backup, models, search, stats commands\n- Added tests for all tool-calling functions (80.2% coverage)\n- Created integration tests for chat tool-calling flow\n- Overall coverage now >60% across internal packages\n\n📚 Documentation:\n- Created TOOLS.md (450+ lines) - comprehensive tool-calling docs\n- Created QUERY_SYNTAX.md (818 lines) - complete JSON query syntax guide\n- Updated README with AI chat examples and tool documentation\n- Added examples for all 7 tools with parameters and expected outputs\n- Documented filter operators, field paths, and best practices\n- Added troubleshooting section and architecture notes\n\n🔧 CI/CD Improvements:\n- Enhanced coverage reporting with PR comments\n- Added automatic coverage summary generation\n- Improved workflow formatting and organization\n- Coverage reports now posted to pull requests automatically\n\n📊 Test Coverage Summary:\n- ✅ internal/tui: 98.8% (EXCELLENT!)\n- ✅ internal/jsonutil: 96.8%\n- ✅ internal/crypto: 80.5%\n- ✅ internal/tools: 80.2%\n- ✅ internal/jsonquery: 73.2%\n- ✅ internal/storage: 67.9%\n- ⚠️ internal/config: 56.8%\n- ⚠️ internal/rag: 53.9%\n- ⚠️ internal/ollama: 46.3%\n- ⚠️ internal/spotify: 40.9%\n- Overall: ~60% average\n\nFiles Added:\n- docs/TOOLS.md (452 lines)\n- docs/QUERY_SYNTAX.md (818 lines)\n- docs/TOOLCALLING_SUMMARY.md (311 lines)\n- internal/tui/model_test.go (615 lines, 98.8% coverage!)\n- internal/tools/tools_test.go (737 lines)\n- internal/tools/tools.go (398 lines)\n- internal/cmd/chat_tools_test.go (589 lines)\n- internal/cmd/backup_test.go (437 lines)\n- internal/cmd/commands_test.go (464 lines)\n- internal/spotify/oauth_integration_test.go (395 lines)\n\nColor Scheme:\n- Nuclear Green: #39FF14 (primary accent)\n- Glow Green: #00FF41 (Matrix green)\n- Neon Cyan: #00FFFF (secondary accent)\n- Deep Black: #0A0E0A (background)\n- Terminal Green: #33FF33 (text)\n\nBreaking Changes: None\nAll tests passing ✅\nBuild successful ✅\nReady for CI/CD ✅",
+          "timestamp": "2026-01-15T02:40:03+05:30",
+          "tree_id": "add8d0bce3bcc5e4b5fdc8d4be4ffc3162284cbb",
+          "url": "https://github.com/bkataru/spotigo/commit/1933113dc46f69082a2da07016ae051d5e9481dd"
+        },
+        "date": 1768425049680,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkStore_Add",
+            "value": 499.6,
+            "unit": "ns/op\t     296 B/op\t       2 allocs/op",
+            "extra": "439477 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - ns/op",
+            "value": 499.6,
+            "unit": "ns/op",
+            "extra": "439477 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - B/op",
+            "value": 296,
+            "unit": "B/op",
+            "extra": "439477 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Add - allocs/op",
+            "value": 2,
+            "unit": "allocs/op",
+            "extra": "439477 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10",
+            "value": 1186,
+            "unit": "ns/op\t    3752 B/op\t       7 allocs/op",
+            "extra": "96631 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - ns/op",
+            "value": 1186,
+            "unit": "ns/op",
+            "extra": "96631 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - B/op",
+            "value": 3752,
+            "unit": "B/op",
+            "extra": "96631 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=10 - allocs/op",
+            "value": 7,
+            "unit": "allocs/op",
+            "extra": "96631 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50",
+            "value": 5884,
+            "unit": "ns/op\t   16744 B/op\t      11 allocs/op",
+            "extra": "20282 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - ns/op",
+            "value": 5884,
+            "unit": "ns/op",
+            "extra": "20282 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - B/op",
+            "value": 16744,
+            "unit": "B/op",
+            "extra": "20282 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_AddBatch/size=50 - allocs/op",
+            "value": 11,
+            "unit": "allocs/op",
+            "extra": "20282 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50",
+            "value": 7019,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "17092 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - ns/op",
+            "value": 7019,
+            "unit": "ns/op",
+            "extra": "17092 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "17092 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=50 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "17092 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100",
+            "value": 14091,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "8372 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - ns/op",
+            "value": 14091,
+            "unit": "ns/op",
+            "extra": "8372 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "8372 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SearchSimilarity/size=100 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "8372 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save",
+            "value": 2057894,
+            "unit": "ns/op\t  460306 B/op\t     162 allocs/op",
+            "extra": "50 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - ns/op",
+            "value": 2057894,
+            "unit": "ns/op",
+            "extra": "50 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - B/op",
+            "value": 460306,
+            "unit": "B/op",
+            "extra": "50 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Save - allocs/op",
+            "value": 162,
+            "unit": "allocs/op",
+            "extra": "50 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load",
+            "value": 2226302,
+            "unit": "ns/op\t  322254 B/op\t     875 allocs/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - ns/op",
+            "value": 2226302,
+            "unit": "ns/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - B/op",
+            "value": 322254,
+            "unit": "B/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_SaveLoad/Load - allocs/op",
+            "value": 875,
+            "unit": "allocs/op",
+            "extra": "52 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128",
+            "value": 126.7,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "943903 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - ns/op",
+            "value": 126.7,
+            "unit": "ns/op",
+            "extra": "943903 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "943903 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=128 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "943903 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384",
+            "value": 365.9,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "303032 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - ns/op",
+            "value": 365.9,
+            "unit": "ns/op",
+            "extra": "303032 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "303032 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkCosineSimilarity/dim=384 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "303032 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count",
+            "value": 5.815,
+            "unit": "ns/op\t       0 B/op\t       0 allocs/op",
+            "extra": "19375814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - ns/op",
+            "value": 5.815,
+            "unit": "ns/op",
+            "extra": "19375814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - B/op",
+            "value": 0,
+            "unit": "B/op",
+            "extra": "19375814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Count - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "19375814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType",
+            "value": 3571,
+            "unit": "ns/op\t     256 B/op\t       2 allocs/op",
+            "extra": "32665 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - ns/op",
+            "value": 3571,
+            "unit": "ns/op",
+            "extra": "32665 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - B/op",
+            "value": 256,
+            "unit": "B/op",
+            "extra": "32665 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_CountByType - allocs/op",
+            "value": 2,
+            "unit": "allocs/op",
+            "extra": "32665 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear",
+            "value": 500.3,
+            "unit": "ns/op\t      48 B/op\t       1 allocs/op",
+            "extra": "257028 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - ns/op",
+            "value": 500.3,
+            "unit": "ns/op",
+            "extra": "257028 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - B/op",
+            "value": 48,
+            "unit": "B/op",
+            "extra": "257028 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkStore_Clear - allocs/op",
+            "value": 1,
+            "unit": "allocs/op",
+            "extra": "257028 times\n4 procs"
           }
         ]
       }
