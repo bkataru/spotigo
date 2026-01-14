@@ -1,7 +1,7 @@
 # Spotigo 2.0 Development Container
 # Go + Ollama for local AI-powered music intelligence
 
-FROM golang:1.23-bookworm
+FROM golang:1.25-bookworm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
