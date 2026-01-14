@@ -319,14 +319,15 @@ When you need specific information from the library, use the appropriate tool. A
 					fmt.Printf("❌ Fallback also failed: %v\n", fallbackErr)
 					// Remove user message from history if chat failed
 					messages = messages[:len(messages)-1]
-					break
+					chatCancel()
+					return
 				}
 
 				// Add assistant response to conversation
 				messages = append(messages, resp.Message)
 				fmt.Println(resp.Message.Content)
 				fmt.Println()
-				break
+				return
 
 			case resp := <-respChan:
 				chatCancel()
@@ -343,8 +344,11 @@ When you need specific information from the library, use the appropriate tool. A
 						// Show arguments for debugging
 						var args map[string]interface{}
 						if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &args); err == nil {
-							argsJSON, _ := json.MarshalIndent(args, "", "  ")
-							fmt.Printf("   Arguments: %s\n", string(argsJSON))
+							if argsJSON, marshalErr := json.MarshalIndent(args, "", "  "); marshalErr == nil {
+								fmt.Printf("   Arguments: %s\n", string(argsJSON))
+							} else {
+								fmt.Printf("   Arguments: <failed to format: %v>\n", marshalErr)
+							}
 						}
 
 						result, err := musicTools.ExecuteToolCall(toolCall)
@@ -367,11 +371,12 @@ When you need specific information from the library, use the appropriate tool. A
 				messages = append(messages, resp.Message)
 				fmt.Println(resp.Message.Content)
 				fmt.Println()
-				break
+				chatCancel()
+				return
 			}
 
-			// Break out of tool calling loop if we got here
-			break
+			// If we got here without continuing, we’re done with this chat turn.
+			// Note: all select branches already return/continue, so nothing to do here.
 		}
 	}
 }

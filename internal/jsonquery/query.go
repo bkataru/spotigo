@@ -255,7 +255,7 @@ func (e *Engine) selectOp(data []interface{}, q Query) QueryResult {
 }
 
 // countOp counts items
-func (e *Engine) countOp(data []interface{}, q Query) QueryResult {
+func (e *Engine) countOp(data []interface{}, _ Query) QueryResult {
 	count := len(data)
 	return QueryResult{
 		Count:   count,
@@ -408,7 +408,11 @@ func (e *Engine) itemContainsText(item interface{}, term string, field string) b
 	}
 
 	// Search all string fields
-	jsonBytes, _ := json.Marshal(item)
+	jsonBytes, err := json.Marshal(item)
+	if err != nil {
+		// If marshaling fails, fall back to string formatting
+		return strings.Contains(strings.ToLower(fmt.Sprintf("%v", item)), term)
+	}
 	return strings.Contains(strings.ToLower(string(jsonBytes)), term)
 }
 
@@ -490,7 +494,7 @@ func (e *Engine) statsOp(data []interface{}, q Query) QueryResult {
 	if q.Field != "" {
 		// Get stats for specific field
 		var numericCount int
-		var sum, min, max float64
+		var sum, minVal, maxVal float64
 		var minSet bool
 		stringValues := make(map[string]int)
 
@@ -503,12 +507,12 @@ func (e *Engine) statsOp(data []interface{}, q Query) QueryResult {
 			if num, ok := toFloat64(val); ok {
 				numericCount++
 				sum += num
-				if !minSet || num < min {
-					min = num
+				if !minSet || num < minVal {
+					minVal = num
 					minSet = true
 				}
-				if num > max {
-					max = num
+				if num > maxVal {
+					maxVal = num
 				}
 			} else {
 				strVal := fmt.Sprintf("%v", val)
@@ -520,8 +524,8 @@ func (e *Engine) statsOp(data []interface{}, q Query) QueryResult {
 			stats["numeric_count"] = numericCount
 			stats["sum"] = sum
 			stats["avg"] = sum / float64(numericCount)
-			stats["min"] = min
-			stats["max"] = max
+			stats["min"] = minVal
+			stats["max"] = maxVal
 		}
 
 		if len(stringValues) > 0 {
